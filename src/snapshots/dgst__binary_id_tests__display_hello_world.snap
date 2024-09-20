@@ -1,0 +1,5 @@
+---
+source: src/lib.rs
+expression: binary_id.to_string()
+---
+1ː002aae6c35c94fcfb415dbe95f408b9ce91ee846ed
