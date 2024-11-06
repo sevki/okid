@@ -1,9 +1,10 @@
 use std::fmt::Display;
 
-use crate::{BinaryType, Digest, OkId};
+use crate::{BinaryType, Digest, IntoOkId, OkId};
 
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub(super) struct Blake3([u8; 32]);
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub(super) struct Blake3(pub(super) [u8; 32]);
+
 impl From<blake3::Hasher> for OkId {
     fn from(value: blake3::Hasher) -> Self {
         let data = value.finalize();
@@ -19,6 +20,8 @@ impl From<blake3::Hasher> for OkId {
         }
     }
 }
+
+impl IntoOkId for blake3::Hasher {}
 
 impl Display for Blake3 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

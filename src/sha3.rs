@@ -5,8 +5,9 @@ use sha3::Digest;
 
 use super::OkId;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub(super) struct Sha512([u8; 64]);
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub(super) struct Sha512(pub(super) [u8; 64]);
+
 impl From<sha3::Sha3_512> for OkId {
     fn from(value: sha3::Sha3_512) -> Self {
         let data = value.finalize();
@@ -22,6 +23,8 @@ impl From<sha3::Sha3_512> for OkId {
         }
     }
 }
+
+impl super::IntoOkId for sha3::Sha3_512 {}
 
 impl From<sha3::Sha3_512Core> for OkId {
     fn from(value: sha3::Sha3_512Core) -> Self {

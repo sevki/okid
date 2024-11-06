@@ -8,7 +8,6 @@
 //! use sha1::Digest as sha1digest;
 //! let hasher = sha1::Sha1::new();
 //! let binary_id = okid::OkId::from(hasher);
-//! insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"1ː00da39a3ee5e6b4b0d3255bfef95601890afd80709"###);
 //! ```
 //! ## sha256
 //! ```rust
@@ -16,13 +15,10 @@
 //! let mut hasher = sha2::Sha256::new();
 //! hasher.update(b"hello world");
 //! let binary_id = okid::OkId::from(hasher);
-//! insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
-//! 2ː00b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-//! "###);
 //! ```
 //!
 //! The resulting strings look like this:
-//! 2ː00b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+//! `2ː00b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9`
 //! first character of the string is the type of the binary data
 //! in this case 2 means sha256
 //! the rest of the string is the hexadecimal representation of the binary data
@@ -32,17 +28,33 @@
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 #![deny(missing_docs)]
 
-use std::{fmt::Display, str::FromStr};
+use std::{fmt::Display, hash::Hash, str::FromStr};
 
-use enumflags2::{bitflags, BitFlags};
+use digest::OutputSizeUser;
 
+use jetstream_wireformat::Data;
 use serde::{Deserialize, Serialize};
 
-const SEPARATOR: char = 'ː';
+use serde_json::json;
+
+#[cfg(feature = "openapi")]
+use utoipa::ToSchema;
+use utoipa::{
+    openapi::{schema::SchemaType, SchemaFormat, Type},
+    PartialSchema,
+};
+
+/// Separator character for the OkId string representation
+pub const SEPARATOR: char = 'ː';
 
 #[cfg(feature = "blake3")]
 /// blake3 module
 pub mod blake3;
+/// fingerprint module
+pub mod fingerprint;
+#[cfg(feature = "git")]
+/// git module
+pub mod oid;
 #[cfg(feature = "sha1")]
 /// sha1 module
 pub mod sha1;
@@ -62,6 +74,8 @@ pub mod uuid;
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Hash)]
 pub(crate) enum BinaryType {
+    // Unknown
+    Unknown = 0,
     #[cfg(feature = "sha1")]
     // Next bit means the size of the digest is of sha1 type
     Sha1 = 1 << 0,
@@ -80,6 +94,8 @@ pub(crate) enum BinaryType {
     #[cfg(feature = "uuid")]
     // UUID
     Uuid = 1 << 5,
+    // Fingerprint
+    Fingerprint = 1 << 6,
 }
 
 impl From<char> for BinaryType {
@@ -97,7 +113,8 @@ impl From<char> for BinaryType {
             'u' => Self::Ulid,
             #[cfg(feature = "uuid")]
             'i' => Self::Uuid,
-            _ => panic!("Invalid binary type"),
+            'f' => Self::Fingerprint,
+            _ => Self::Unknown,
         }
     }
 }
@@ -117,6 +134,8 @@ impl BinaryType {
             Self::Ulid => 'u',
             #[cfg(feature = "uuid")]
             Self::Uuid => 'i',
+            Self::Unknown => '0',
+            Self::Fingerprint => 'f',
         }
     }
 }
@@ -136,15 +155,96 @@ impl Display for BinaryType {
             Self::Ulid => write!(f, "ulid"),
             #[cfg(feature = "uuid")]
             Self::Uuid => write!(f, "uuid"),
+            Self::Unknown => write!(f, "unknown"),
+            Self::Fingerprint => write!(f, "fingerprint"),
         }
     }
 }
 
 /// The digest of the binary identifier
+#[derive(Clone, Copy)]
 pub struct OkId {
     hash_type: BinaryType,
     /// The digest of the binary identifier
     digest: Digest,
+}
+
+#[cfg(feature = "graphql")]
+/// OkId scalar for graphql
+async_graphql::scalar!(OkId);
+
+#[cfg(feature = "openapi")]
+impl PartialSchema for OkId {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        let mut o = utoipa::openapi::schema::Object::new();
+        o.schema_type = SchemaType::new(Type::String);
+        o.example = Some(json!(format!(
+            "2{SEPARATOR}00b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
+        )
+        .to_string()));
+        let version = env!("CARGO_PKG_VERSION");
+        o.description = Some(format!(
+            r###"[OkId v{}](https://ok.software/ok/-/packages/cargo/okid/{})
+            "###,
+            version, version
+        ));
+        o.format = Some(SchemaFormat::Custom("OkId".to_string()));
+        utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(o))
+    }
+}
+
+#[cfg(feature = "openapi")]
+impl ToSchema for OkId {
+    fn name() -> std::borrow::Cow<'static, str> {
+        "OkId".into()
+    }
+}
+
+impl PartialEq for OkId {
+    fn eq(&self, other: &Self) -> bool {
+        match (&self.digest, &other.digest) {
+            (Digest::Sha1(a), Digest::Sha1(b)) => a == b,
+            (Digest::Sha1(_), _) => false,
+            (Digest::Sha256(a), Digest::Sha256(b)) => a == b,
+            (Digest::Sha256(_), _) => false,
+            (Digest::Sha512(a), Digest::Sha512(b)) => a == b,
+            (Digest::Sha512(_), _) => false,
+            (Digest::Blake3(a), Digest::Blake3(b)) => a == b,
+            (Digest::Blake3(_), _) => false,
+            (Digest::Ulid(a), Digest::Ulid(b)) => a == b,
+            (Digest::Ulid(_), _) => false,
+            (Digest::Uuid(a), Digest::Uuid(b)) => a == b,
+            (Digest::Uuid(_), _) => false,
+            (Digest::Fingerprint(a), Digest::Fingerprint(b)) => a == b,
+            (Digest::Fingerprint(_), _) => false,
+        }
+    }
+}
+
+impl Eq for OkId {}
+
+impl PartialOrd for OkId {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match (&self.digest, &other.digest) {
+            (Digest::Ulid(a), Digest::Ulid(b)) => a.0.partial_cmp(&b.0),
+            _ => None,
+        }
+    }
+}
+
+impl Hash for OkId {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.hash_type.hash(state);
+        match &self.digest {
+            Digest::Sha1(d) => d.hash(state),
+            Digest::Sha256(d) => d.hash(state),
+            Digest::Sha512(d) => d.hash(state),
+            Digest::Blake3(d) => d.hash(state),
+            Digest::Ulid(d) => d.hash(state),
+            Digest::Uuid(d) => d.hash(state),
+            Digest::Fingerprint(d) => d.hash(state),
+        }
+    }
 }
 
 impl Serialize for OkId {
@@ -172,6 +272,8 @@ pub enum Error {
     /// Invalid format
     InvalidFormat,
 }
+
+impl std::error::Error for Error {}
 
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -239,55 +341,16 @@ fn parse_okid(s: &str) -> Result<OkId, Error> {
             hash_type,
             digest: Digest::Uuid(rest.parse()?),
         }),
+        BinaryType::Unknown => todo!(),
+        BinaryType::Fingerprint => Ok(OkId {
+            hash_type,
+            digest: Digest::Fingerprint(rest.parse()?),
+        }),
     }
 }
 
-#[bitflags]
-#[repr(u8)]
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Hash)]
-enum CommonSettings {
-    Git = 0b10000000,
-    Obfuscated = 0b01000000,
-}
-
-impl From<char> for CommonSettings {
-    fn from(value: char) -> Self {
-        match value {
-            'g' => Self::Git,
-            'o' => Self::Obfuscated,
-            _ => panic!("Invalid common setting"),
-        }
-    }
-}
-
-impl CommonSettings {
-    fn char_code(&self) -> char {
-        match self {
-            Self::Git => 'g',
-            Self::Obfuscated => 'o',
-        }
-    }
-}
-
-impl Display for CommonSettings {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let settings = BitFlags::from_flag(*self);
-        let buf = "+".to_string();
-        let settings = settings.iter().fold(vec![], |acc, x| {
-            let mut acc = acc;
-            acc.push(x.char_code());
-            acc
-        });
-
-        let settings = settings
-            .iter()
-            .fold(String::new(), |acc, x| acc + &x.to_string());
-
-        write!(f, "{}", buf + settings.as_str())
-    }
-}
 /// Digest of the binary identifier
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 enum Digest {
     #[cfg(feature = "sha1")]
     Sha1(crate::sha1::Sha1),
@@ -301,11 +364,11 @@ enum Digest {
     Ulid(crate::ulid::Ulid),
     #[cfg(feature = "uuid")]
     Uuid(crate::uuid::Uuid),
+    Fingerprint(crate::fingerprint::Fingerprint),
 }
 
 impl Display for OkId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // Write the binary type code
         write!(f, "{}{}", self.hash_type.char_code(), SEPARATOR)?;
 
         match &self.digest {
@@ -321,13 +384,190 @@ impl Display for OkId {
             Digest::Ulid(ulid) => ulid.fmt(f),
             #[cfg(feature = "uuid")]
             Digest::Uuid(uuid) => uuid.fmt(f),
+            Digest::Fingerprint(fingerprint) => fingerprint.fmt(f),
+        }
+    }
+}
+
+impl std::fmt::Debug for OkId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}{}", self.hash_type.char_code(), SEPARATOR)?;
+
+        match &self.digest {
+            #[cfg(feature = "sha1")]
+            Digest::Sha1(sha1) => std::fmt::Display::fmt(sha1, f),
+            #[cfg(feature = "sha2")]
+            Digest::Sha256(sha256) => std::fmt::Display::fmt(sha256, f),
+            #[cfg(feature = "sha3")]
+            Digest::Sha512(sha512) => std::fmt::Display::fmt(sha512, f),
+            #[cfg(feature = "blake3")]
+            Digest::Blake3(blake3) => std::fmt::Display::fmt(blake3, f),
+            #[cfg(feature = "ulid")]
+            Digest::Ulid(ulid) => std::fmt::Display::fmt(ulid, f),
+            #[cfg(feature = "uuid")]
+            Digest::Uuid(uuid) => std::fmt::Display::fmt(uuid, f),
+
+            Digest::Fingerprint(fingerprint) => std::fmt::Display::fmt(fingerprint, f),
+        }
+    }
+}
+
+/// IntoOkId trait, a common trait that OkId can be converted from
+pub trait IntoOkId
+where
+    Self: Into<OkId>,
+{
+    /// Convert the type into an OkId
+    fn into_okid(self) -> OkId {
+        self.into()
+    }
+}
+
+impl OkId {
+    /// Convert the OkId into a byte slice
+    #[inline]
+    pub fn as_key(&self) -> &[u8] {
+        let fmtd = self.to_string();
+        let bytes = fmtd.as_bytes();
+        // SAFETY: the bytes are from a string, which is guaranteed to be valid utf8
+        unsafe { std::slice::from_raw_parts(bytes.as_ptr(), bytes.len()) }
+    }
+}
+
+/// FromDigest trait, a common trait that OkId can be converted from
+pub trait FromDigest: OutputSizeUser + digest::Digest + IntoOkId + Send {}
+
+impl<T: digest::Digest + OutputSizeUser + IntoOkId + Send> FromDigest for T {}
+
+impl jetstream_wireformat::WireFormat for OkId {
+    fn byte_size(&self) -> u32 {
+        // binary type + separator
+        1
+            // digest length
+        + match self.digest {
+            Digest::Sha1(sha1) => sha1.0.len() as u32 ,
+            Digest::Sha256(sha256) => sha256.0.len() as u32 ,
+            Digest::Sha512(sha512) => sha512.0.len() as u32,
+            Digest::Blake3(blake3) => blake3.0.len() as u32,
+            Digest::Ulid(_ulid) => 128 / 8,
+            Digest::Uuid(_uuid) => 128 / 8,
+            Digest::Fingerprint(_fingerprint) => 64 / 8,
+        }
+    }
+
+    fn encode<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        let c = self.hash_type.char_code() as u8;
+        u8::encode(&c, writer)?;
+
+        match &self.digest {
+            #[cfg(feature = "sha1")]
+            Digest::Sha1(sha1) => Data::encode(&Data(sha1.0.into()), writer)?,
+            #[cfg(feature = "sha2")]
+            Digest::Sha256(sha256) => Data::encode(&Data(sha256.0.into()), writer)?,
+            #[cfg(feature = "sha3")]
+            Digest::Sha512(sha512) => Data::encode(&Data(sha512.0.into()), writer)?,
+            #[cfg(feature = "blake3")]
+            Digest::Blake3(blake3) => Data::encode(&Data(blake3.0.into()), writer)?,
+            #[cfg(feature = "ulid")]
+            Digest::Ulid(ulid) => u128::encode(&ulid.0, writer)?,
+            #[cfg(feature = "uuid")]
+            Digest::Uuid(uuid) => {
+                u128::encode(&uuid.0, writer)?;
+            }
+            Digest::Fingerprint(fingerprint) => {
+                u64::encode(&fingerprint.0, writer)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn decode<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
+        let binary_type = u8::decode(reader)?;
+        match BinaryType::from(binary_type as char) {
+            BinaryType::Unknown => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!("Unknown binary type: {}", binary_type as char),
+            )),
+            #[cfg(feature = "sha1")]
+            BinaryType::Sha1 => {
+                let data = Data::decode(reader)?;
+                let data = data.get(0..20).unwrap();
+                let mut buf = [0; 20];
+                if data.len() == 20 {
+                    buf.copy_from_slice(data);
+                }
+                Ok(OkId {
+                    hash_type: BinaryType::Sha1,
+                    digest: Digest::Sha1(crate::sha1::Sha1(buf)),
+                })
+            }
+            #[cfg(feature = "sha2")]
+            BinaryType::Sha256 => {
+                let data = Data::decode(reader)?;
+                let data = data.get(0..32).unwrap();
+                let mut buf = [0; 32];
+                if data.len() == 32 {
+                    buf.copy_from_slice(data);
+                }
+                Ok(OkId {
+                    hash_type: BinaryType::Sha256,
+                    digest: Digest::Sha256(crate::sha2::Sha256(buf)),
+                })
+            }
+            BinaryType::Sha3_512 => {
+                let data = Data::decode(reader)?;
+                let data = data.get(0..64).unwrap();
+                let mut buf = [0; 64];
+                if data.len() == 64 {
+                    buf.copy_from_slice(data);
+                }
+                Ok(OkId {
+                    hash_type: BinaryType::Sha3_512,
+                    digest: Digest::Sha512(crate::sha3::Sha512(buf)),
+                })
+            }
+            BinaryType::Blake3 => {
+                let data = Data::decode(reader)?;
+                let data = data.get(0..32).unwrap();
+                let mut buf = [0; 32];
+                if data.len() == 32 {
+                    buf.copy_from_slice(data);
+                }
+                Ok(OkId {
+                    hash_type: BinaryType::Blake3,
+                    digest: Digest::Blake3(crate::blake3::Blake3(buf)),
+                })
+            }
+            BinaryType::Ulid => {
+                let data = u128::decode(reader)?;
+                Ok(OkId {
+                    hash_type: BinaryType::Ulid,
+                    digest: Digest::Ulid(crate::ulid::Ulid(data)),
+                })
+            }
+            BinaryType::Uuid => {
+                let data = u128::decode(reader)?;
+                Ok(OkId {
+                    hash_type: BinaryType::Uuid,
+                    digest: Digest::Uuid(crate::uuid::Uuid(data)),
+                })
+            }
+            BinaryType::Fingerprint => {
+                let data = u64::decode(reader)?;
+                Ok(OkId {
+                    hash_type: BinaryType::Fingerprint,
+                    digest: Digest::Fingerprint(crate::fingerprint::Fingerprint(data)),
+                })
+            }
         }
     }
 }
 
 #[cfg(test)]
-mod binary_id_tests {
+mod okid_tests {
 
+    use jetstream_wireformat::JetStreamWireFormat;
     #[cfg(feature = "sha1")]
     use sha1::Digest as sha1digest;
 
@@ -338,7 +578,7 @@ mod binary_id_tests {
         let hasher = sha1::Sha1::new();
         let binary_id = OkId::from(hasher);
         insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
-        1ː00da39a3ee5e6b4b0d3255bfef95601890afd80709
+        1ːda39a3ee5e6b4b0d3255bfef95601890afd80709
         "###);
     }
     #[cfg(feature = "sha1")]
@@ -348,7 +588,7 @@ mod binary_id_tests {
         hasher.update(b"hello world");
         let binary_id = OkId::from(hasher);
         insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
-        1ː002aae6c35c94fcfb415dbe95f408b9ce91ee846ed
+        1ː2aae6c35c94fcfb415dbe95f408b9ce91ee846ed
         "###);
     }
     #[cfg(feature = "sha2")]
@@ -358,7 +598,7 @@ mod binary_id_tests {
         hasher.update(b"hello world");
         let binary_id = OkId::from(hasher);
         insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
-        2ː00b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+        2ːb94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
         "###);
     }
 
@@ -406,41 +646,176 @@ mod binary_id_tests {
 
     #[cfg(feature = "sha1")]
     #[test]
-    fn test_parse_hello_world_sha1() {
-        let hash = "1ː002aae6c35c94fcfb415dbe95f408b9ce91ee846ed";
+    fn test_parse_hello_world() {
+        let seperator = super::SEPARATOR;
+        let hash = format!("1{seperator}2aae6c35c94fcfb415dbe95f408b9ce91ee846ed");
         let binary_id = hash.parse::<OkId>().unwrap();
-        insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
-        1ː002aae6c35c94fcfb415dbe95f408b9ce91ee846ed
-        "###);
+        assert_eq!(
+            binary_id.to_string(),
+            format!("1{seperator}2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"),
+        );
     }
 
     #[cfg(feature = "sha2")]
     #[test]
     fn test_parse_hello_world_sha256() {
-        let hash = "2ː00b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9";
+        let seperator = super::SEPARATOR;
+        let hash =
+            format!("2{seperator}b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
         let binary_id = hash.parse::<OkId>().unwrap();
-        insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
-        2ː00b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-        "###);
+        assert_eq!(
+            binary_id.to_string(),
+            format!("2{seperator}b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"),
+        );
     }
 
     #[cfg(feature = "sha3")]
     #[test]
     fn test_parse_hello_world_sha3() {
-        let hash = "3ː840006653e9ac9e95117a15c915caab81662918e925de9e004f774ff82d7079a40d4d27b1b372657c61d46d470304c88c788b3a4527ad074d1dccbee5dbaa99a";
+        let seperator = super::SEPARATOR;
+        let hash = format!("3{seperator}840006653e9ac9e95117a15c915caab81662918e925de9e004f774ff82d7079a40d4d27b1b372657c61d46d470304c88c788b3a4527ad074d1dccbee5dbaa99a");
         let binary_id = hash.parse::<OkId>().unwrap();
-        insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
-        3ː840006653e9ac9e95117a15c915caab81662918e925de9e004f774ff82d7079a40d4d27b1b372657c61d46d470304c88c788b3a4527ad074d1dccbee5dbaa99a
-        "###);
+        assert_eq!(
+            binary_id.to_string(),
+            format!("3{seperator}840006653e9ac9e95117a15c915caab81662918e925de9e004f774ff82d7079a40d4d27b1b372657c61d46d470304c88c788b3a4527ad074d1dccbee5dbaa99a"),
+        );
     }
 
     #[cfg(feature = "blake3")]
     #[test]
     fn test_parse_hello_world_blake3() {
-        let hash = "bːd74981efa70a0c880b8d8c1985d075dbcbf679b99a5f9914e5aaf96b831a9e24";
+        let seperator = super::SEPARATOR;
+        let hash =
+            format!("b{seperator}d74981efa70a0c880b8d8c1985d075dbcbf679b99a5f9914e5aaf96b831a9e24");
         let binary_id = hash.parse::<OkId>().unwrap();
-        insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
-        bːd74981efa70a0c880b8d8c1985d075dbcbf679b99a5f9914e5aaf96b831a9e24
-        "###);
+        assert_eq!(
+            binary_id.to_string(),
+            format!("b{seperator}d74981efa70a0c880b8d8c1985d075dbcbf679b99a5f9914e5aaf96b831a9e24"),
+        );
+    }
+
+    #[cfg(feature = "ulid")]
+    #[test]
+    fn test_parse_hello_world_ulid() {
+        let seperator = super::SEPARATOR;
+        let hash = format!("u{seperator}146907d25d66000035da136af2f988ca");
+        let binary_id = hash.parse::<OkId>().unwrap();
+        assert_eq!(
+            binary_id.to_string(),
+            format!("u{seperator}146907d25d66000035da136af2f988ca"),
+        );
+    }
+
+    #[cfg(feature = "sha1")]
+    #[test]
+    fn test_wireformat_hello_world_sha1() {
+        use jetstream_wireformat::WireFormat;
+
+        let mut hasher = sha1::Sha1::new();
+        hasher.update(b"hello world");
+        let binary_id = OkId::from(hasher);
+        let mut buf: Vec<u8> = vec![];
+        OkId::encode(&binary_id, &mut buf).unwrap();
+        let new_binary_id = OkId::decode(&mut buf.as_slice()).unwrap();
+        assert_eq!(binary_id.to_string(), new_binary_id.to_string(),);
+    }
+
+    #[cfg(feature = "sha2")]
+    #[test]
+    fn test_wireformat_hello_world_sha256() {
+        use jetstream_wireformat::WireFormat;
+
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(b"hello world");
+        let binary_id = OkId::from(hasher);
+        let mut buf: Vec<u8> = vec![];
+        OkId::encode(&binary_id, &mut buf).unwrap();
+        let new_binary_id = OkId::decode(&mut buf.as_slice()).unwrap();
+        assert_eq!(binary_id.to_string(), new_binary_id.to_string(),);
+    }
+
+    #[cfg(feature = "sha3")]
+    #[test]
+    fn test_wireformat_hello_world_sha3() {
+        use jetstream_wireformat::WireFormat;
+
+        let mut hasher = sha3::Sha3_512::new();
+        hasher.update(b"hello world");
+        let binary_id = OkId::from(hasher);
+        let mut buf: Vec<u8> = vec![];
+        OkId::encode(&binary_id, &mut buf).unwrap();
+        let new_binary_id = OkId::decode(&mut buf.as_slice()).unwrap();
+        assert_eq!(binary_id.to_string(), new_binary_id.to_string(),);
+    }
+
+    #[cfg(feature = "blake3")]
+    #[test]
+    fn test_wireformat_hello_world_blake3() {
+        use jetstream_wireformat::WireFormat;
+
+        let mut hasher = blake3::Hasher::new();
+        hasher.update(b"hello world");
+        let binary_id = OkId::from(hasher);
+        let mut buf: Vec<u8> = vec![];
+        OkId::encode(&binary_id, &mut buf).unwrap();
+        let new_binary_id = OkId::decode(&mut buf.as_slice()).unwrap();
+        assert_eq!(binary_id.to_string(), new_binary_id.to_string(),);
+    }
+
+    // test serde
+    #[cfg(feature = "sha1")]
+    #[test]
+    fn test_serde_hello_world_sha1() {
+        use insta::assert_snapshot;
+
+        let mut hasher = sha1::Sha1::new();
+        hasher.update(b"hello world");
+        let binary_id = OkId::from(hasher);
+        let serialized = serde_json::to_string_pretty(&binary_id).unwrap();
+        let deserialized: OkId = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(binary_id.to_string(), deserialized.to_string(),);
+        assert_snapshot!(serialized, @r###""1ː2aae6c35c94fcfb415dbe95f408b9ce91ee846ed""###);
+    }
+
+    #[cfg(feature = "sha2")]
+    #[test]
+    fn test_serde_hello_world_sha256() {
+        use insta::assert_snapshot;
+
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(b"hello world");
+        let binary_id = OkId::from(hasher);
+        let serialized = serde_json::to_string_pretty(&binary_id).unwrap();
+        let deserialized: OkId = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(binary_id.to_string(), deserialized.to_string(),);
+        assert_snapshot!(serialized, @r###""2ːb94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9""###);
+    }
+
+    #[derive(JetStreamWireFormat, Debug, Eq, PartialEq)]
+    pub struct Chunk(pub u64, pub OkId);
+
+    #[derive(JetStreamWireFormat, Debug, Eq, PartialEq)]
+    pub struct ChunkMap(pub Vec<Chunk>);
+
+    #[derive(JetStreamWireFormat, Debug, Eq, PartialEq)]
+    pub struct File(pub OkId, pub ChunkMap);
+
+    use jetstream_wireformat::wire_format_extensions::ConvertWireFormat;
+    #[cfg(feature = "sha1")]
+    #[test]
+    fn test_serde_file_sha1() {
+        use jetstream_wireformat::WireFormat;
+        let mut hasher = sha1::Sha1::new();
+        hasher.update(b"hello world");
+        let binary_id = OkId::from(hasher);
+        let chunk = Chunk(1, binary_id);
+        let chunk_map = ChunkMap(vec![chunk]);
+        let file = File(binary_id, chunk_map);
+        let mut byts = file.to_bytes();
+        let new_file = File::from_bytes(&mut byts).unwrap();
+        let mut reader = std::io::Cursor::new(byts);
+        let old_file = File::decode(&mut reader);
+
+        assert_eq!(file, new_file);
     }
 }

@@ -2,8 +2,9 @@ use std::fmt::Display;
 
 use crate::OkId;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub(super) struct Uuid(u128);
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub(super) struct Uuid(pub(super) u128);
+
 impl From<uuid::Uuid> for OkId {
     fn from(value: uuid::Uuid) -> Self {
         Self {
@@ -20,6 +21,8 @@ impl Display for Uuid {
     }
 }
 
+impl super::IntoOkId for uuid::Uuid {}
+
 impl std::str::FromStr for Uuid {
     type Err = crate::Error;
 
@@ -28,5 +31,11 @@ impl std::str::FromStr for Uuid {
         let mut hash: [u8; 16] = [0; 16];
         hash.copy_from_slice(&buf);
         Ok(Uuid(u128::from_be_bytes(hash)))
+    }
+}
+
+impl From<Uuid> for uuid::Uuid {
+    fn from(val: Uuid) -> Self {
+        uuid::Uuid::from_u128(val.0)
     }
 }
