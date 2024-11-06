@@ -1,7 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
 use digest::core_api::CoreWrapper;
-use enumflags2::BitFlags;
 
 use super::{BinaryType, Digest, IntoOkId, OkId};
 

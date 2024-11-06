@@ -1,4 +1,3 @@
-use enumflags2::BitFlags;
 use sha2::Digest;
 use std::{fmt::Display, str::FromStr};
 

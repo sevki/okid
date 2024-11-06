@@ -1,12 +1,9 @@
-use enumflags2::make_bitflags;
-
 use crate::{sha1::Sha1, BinaryType, CommonSettings, Digest};
 
 use super::OkId;
 
 impl From<git2::Oid> for OkId {
     fn from(value: git2::Oid) -> Self {
-        let settings = make_bitflags!(CommonSettings::{Git});
         let data = value.as_bytes();
         let mut buf = [0; 20];
         if data.len() == 20 {
@@ -14,7 +11,7 @@ impl From<git2::Oid> for OkId {
         }
         Self {
             hash_type: BinaryType::Sha1,
-            digest: Digest::Sha1(Sha1(settings, buf)),
+            digest: Digest::Sha1(Sha1( buf)),
         }
     }
 }

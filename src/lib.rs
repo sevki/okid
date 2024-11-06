@@ -804,7 +804,7 @@ mod okid_tests {
     #[cfg(feature = "sha1")]
     #[test]
     fn test_serde_file_sha1() {
-        use jetstream_wireformat::WireFormat;
+        
         let mut hasher = sha1::Sha1::new();
         hasher.update(b"hello world");
         let binary_id = OkId::from(hasher);
@@ -813,8 +813,7 @@ mod okid_tests {
         let file = File(binary_id, chunk_map);
         let mut byts = file.to_bytes();
         let new_file = File::from_bytes(&mut byts).unwrap();
-        let mut reader = std::io::Cursor::new(byts);
-        let old_file = File::decode(&mut reader);
+        let mut _reader = std::io::Cursor::new(byts);
 
         assert_eq!(file, new_file);
     }
