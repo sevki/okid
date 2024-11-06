@@ -27,7 +27,7 @@ impl Display for Sha256 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let data = self.0;
         let buf = &hex::encode(data);
-        f.write_str(&buf)?;
+        f.write_str(buf)?;
         Ok(())
     }
 }

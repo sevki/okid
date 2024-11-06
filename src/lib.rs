@@ -170,7 +170,6 @@ pub struct OkId {
 }
 
 #[cfg(feature = "graphql")]
-/// OkId scalar for graphql
 async_graphql::scalar!(OkId);
 
 #[cfg(feature = "openapi")]
@@ -193,6 +192,7 @@ impl PartialSchema for OkId {
     }
 }
 
+/// OkId schema for openapi
 #[cfg(feature = "openapi")]
 impl ToSchema for OkId {
     fn name() -> std::borrow::Cow<'static, str> {
@@ -804,7 +804,6 @@ mod okid_tests {
     #[cfg(feature = "sha1")]
     #[test]
     fn test_serde_file_sha1() {
-        
         let mut hasher = sha1::Sha1::new();
         hasher.update(b"hello world");
         let binary_id = OkId::from(hasher);

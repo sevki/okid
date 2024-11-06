@@ -1,4 +1,4 @@
-use crate::{sha1::Sha1, BinaryType, CommonSettings, Digest};
+use crate::{sha1::Sha1, BinaryType, Digest};
 
 use super::OkId;
 
@@ -11,7 +11,7 @@ impl From<git2::Oid> for OkId {
         }
         Self {
             hash_type: BinaryType::Sha1,
-            digest: Digest::Sha1(Sha1( buf)),
+            digest: Digest::Sha1(Sha1(buf)),
         }
     }
 }
