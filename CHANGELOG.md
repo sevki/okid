@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/sevki/okid/compare/v0.1.0...v0.1.1) (2024-11-08)
+
+
+### Bug Fixes
+
+* update release-please-config.json ([6d7e3c8](https://github.com/sevki/okid/commit/6d7e3c8ea08acd320dd9ce85d3d787e389b76531))
+
 ## 0.1.0 (2024-11-08)
 
 
