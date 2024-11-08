@@ -1,28 +1,4 @@
-//! okid is a library for generating cannocial self-describing binary identifiers for
-//! git commits, sha1, sha256, sha512 hashes, ULIDs, UUIDs, datatime, extended,
-//! and random identifiers, etc.
-//! okid binary identifier
-//! # Examples
-//! ## sha1
-//! ```rust
-//! use sha1::Digest as sha1digest;
-//! let hasher = sha1::Sha1::new();
-//! let binary_id = okid::OkId::from(hasher);
-//! ```
-//! ## sha256
-//! ```rust
-//! use sha2::Digest;
-//! let mut hasher = sha2::Sha256::new();
-//! hasher.update(b"hello world");
-//! let binary_id = okid::OkId::from(hasher);
-//! ```
-//!
-//! The resulting strings look like this:
-//! `2ː00b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9`
-//! first character of the string is the type of the binary data
-//! in this case 2 means sha256
-//! the rest of the string is the hexadecimal representation of the binary data
-//!
+#![doc = include_str!("../README.md")]
 #![doc(html_logo_url = "https://assets.ok.software/okid.png")]
 #![doc(html_favicon_url = "https://assets.ok.software/okid.png")]
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
