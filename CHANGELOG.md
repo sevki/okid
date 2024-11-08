@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/sevki/okid/compare/v0.1.1...v0.2.0) (2024-11-08)
+
+
+### Features
+
+* move the docs ([0935c08](https://github.com/sevki/okid/commit/0935c08d4ce7351f5b70979919d054c9dae32c6c))
+
 ## [0.1.1](https://github.com/sevki/okid/compare/v0.1.0...v0.1.1) (2024-11-08)
 
 
