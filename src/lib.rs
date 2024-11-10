@@ -552,7 +552,7 @@ impl std::convert::AsRef<[u8]> for OkId {
 /// A type that represents a path that is safe to use in a URL.
 #[repr(transparent)]
 pub struct PathSafe(
-    /// Innder okdi
+    /// Innder okid
     pub OkId
 );
 
