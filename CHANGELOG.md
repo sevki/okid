@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/sevki/okid/compare/v0.3.0...v0.4.0) (2024-11-10)
+
+
+### Features
+
+* introduce pathsafe ([12758ef](https://github.com/sevki/okid/commit/12758ef97b2c25ed78d897461d645e10b06cfb37))
+
 ## [0.3.0](https://github.com/sevki/okid/compare/v0.2.0...v0.3.0) (2024-11-10)
 
 
