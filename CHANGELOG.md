@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/sevki/okid/compare/v0.2.0...v0.3.0) (2024-11-10)
+
+
+### Features
+
+* add as ref support ([dc909e2](https://github.com/sevki/okid/commit/dc909e20ad0ea0d4afd95b53a428a1161839a756))
+
 ## [0.2.0](https://github.com/sevki/okid/compare/v0.1.1...v0.2.0) (2024-11-08)
 
 
