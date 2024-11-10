@@ -549,46 +549,9 @@ impl std::convert::AsRef<[u8]> for OkId {
     }
 }
 
-/// A type that represents a path that is safe to use in a URL.
-#[repr(transparent)]
-pub struct PathSafe(
-    /// Innder okid
-    pub OkId
-);
-
-impl From<OkId> for PathSafe {
-    fn from(okid: OkId) -> Self {
-        PathSafe(okid)
-    }
-}
-
-impl From<PathSafe> for PathBuf {
-    fn from(val: PathSafe) -> Self {
-        id_to_path(val.0)
-    }
-}
-
-fn id_to_path(id: OkId) -> std::path::PathBuf {
-    std::path::PathBuf::from(id_to_path_str(id))
-}
-
-fn id_to_path_str(id: OkId) -> String {
+/// Create a path-safe string from an OkId
+pub fn pathsafe(id: OkId) -> impl AsRef<[u8]> {
     format!("1/{}", id.to_string().replace(SEPARATOR, "/"))
-}
-
-impl std::fmt::Display for PathSafe {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", id_to_path_str(self.0))
-    }
-}
-
-impl std::convert::AsRef<[u8]> for PathSafe {
-    fn as_ref(&self) -> &[u8] {
-        let fmted = id_to_path_str(self.0);
-        let bytes = fmted.as_bytes();
-        // SAFETY: the bytes are from a string, which is guaranteed to be valid utf8
-        unsafe { std::slice::from_raw_parts(bytes.as_ptr(), bytes.len()) }
-    }
 }
 
 #[cfg(test)]
