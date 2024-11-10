@@ -540,6 +540,15 @@ impl jetstream_wireformat::WireFormat for OkId {
     }
 }
 
+impl std::convert::AsRef<[u8]> for OkId {
+    fn as_ref(&self) -> &[u8] {
+        let fmtd = self.to_string();
+        let bytes = fmtd.as_bytes();
+        // SAFETY: the bytes are from a string, which is guaranteed to be valid utf8
+        unsafe { std::slice::from_raw_parts(bytes.as_ptr(), bytes.len()) }
+    }
+}
+
 #[cfg(test)]
 mod okid_tests {
 
@@ -786,8 +795,8 @@ mod okid_tests {
         let chunk = Chunk(1, binary_id);
         let chunk_map = ChunkMap(vec![chunk]);
         let file = File(binary_id, chunk_map);
-        let mut byts = file.to_bytes();
-        let new_file = File::from_bytes(&mut byts).unwrap();
+        let byts = file.to_bytes();
+        let new_file = File::from_bytes(&byts).unwrap();
         let mut _reader = std::io::Cursor::new(byts);
 
         assert_eq!(file, new_file);
