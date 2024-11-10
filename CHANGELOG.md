@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1](https://github.com/sevki/okid/compare/v0.4.0...v0.4.1) (2024-11-10)
+
+
+### Bug Fixes
+
+* typo ([2901db9](https://github.com/sevki/okid/commit/2901db9ae69a51604cc86f69da803aa34d750901))
+* usability ([1ddeb08](https://github.com/sevki/okid/commit/1ddeb08c8e58cc6973739a6a8dd97e162e798824))
+
 ## [0.4.0](https://github.com/sevki/okid/compare/v0.3.0...v0.4.0) (2024-11-10)
 
 
