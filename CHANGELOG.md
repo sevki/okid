@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/sevki/okid/compare/v0.4.1...v0.4.2) (2024-11-10)
+
+
+### Bug Fixes
+
+* pathsafe make it a function ([8421f66](https://github.com/sevki/okid/commit/8421f668b0125ff00e16258065b3b01e2507e4b7))
+
 ## [0.4.1](https://github.com/sevki/okid/compare/v0.4.0...v0.4.1) (2024-11-10)
 
 
