@@ -246,9 +246,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.1.36"
+version = "1.1.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "baee610e9452a8f6f0a1b6194ec09ff9e2d85dea54432acdae41aa0761c95d70"
+checksum = "40545c26d092346d8a8dab71ee48e7685a7a9cba76e634790c215b41a4a7b4cf"
 dependencies = [
  "jobserver",
  "libc",
@@ -499,9 +499,9 @@ dependencies = [
 
 [[package]]
 name = "fastrand"
-version = "2.1.1"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8c02a5121d4ea3eb16a80748c74f5549a5665e4c21333c6098f283870fbdea6"
+checksum = "486f806e73c5707928240ddc295403b1b93c96a02038563881c4a2fd84b81ac4"
 
 [[package]]
 name = "fastvlq"
@@ -941,9 +941,9 @@ checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
 
 [[package]]
 name = "jetstream_derive"
-version = "6.0.0"
+version = "6.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ca131815a3997c4fdab189d39190549146a5085d47d9170d167af27acf60e45"
+checksum = "6a025ff541282664925d3393d525a9b5fe7166fd19d618c25e63974d6bb0e4f3"
 dependencies = [
  "convert_case",
  "paste",
@@ -955,9 +955,9 @@ dependencies = [
 
 [[package]]
 name = "jetstream_wireformat"
-version = "6.0.0"
+version = "6.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39de40a2f04a9f15c0d3facf619fc982b4017f9d8b13795d5bd342680bac66e0"
+checksum = "92732e4869ef2604aa0f9427b80a6545857e80c001959849ef7f7c1201ebf0cb"
 dependencies = [
  "bytes",
  "futures",
@@ -1654,9 +1654,9 @@ dependencies = [
 
 [[package]]
 name = "tempfile"
-version = "3.13.0"
+version = "3.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0f2c9fc62d0beef6951ccffd757e241266a2c833136efbe35af6cd2567dca5b"
+checksum = "28cce251fcbc87fac86a866eeb0d6c2d536fc16d06f184bb61aeae11aa4cee0c"
 dependencies = [
  "cfg-if",
  "fastrand",
