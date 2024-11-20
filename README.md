@@ -7,16 +7,22 @@ such as `sha1` hashes, `uuid`s and more.
 
 ## sha1
 ```rust
-use sha1::Digest as sha1digest;
-let hasher = sha1::Sha1::new();
-let binary_id = okid::OkId::from(hasher);
+#[cfg(feature = "sha1")]
+{
+    use sha1::Digest as sha1digest;
+    let hasher = sha1::Sha1::new();
+    let binary_id = okid::OkId::from(hasher);
+}
 ```
 ## sha256
 ```rust
-use sha2::Digest;
-let mut hasher = sha2::Sha256::new();
-hasher.update(b"hello world");
-let binary_id = okid::OkId::from(hasher);
+#[cfg(feature = "sha2")]
+{
+    use sha2::Digest;
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(b"hello world");
+    let binary_id = okid::OkId::from(hasher);
+}
 ```
 
 The resulting strings look like this:
