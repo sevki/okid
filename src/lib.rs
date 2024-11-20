@@ -4,7 +4,7 @@
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 #![deny(missing_docs)]
 
-use std::{fmt::Display, hash::Hash, path::PathBuf, str::FromStr};
+use std::{fmt::Display, hash::Hash, str::FromStr};
 
 use digest::OutputSizeUser;
 
@@ -15,6 +15,7 @@ use serde_json::json;
 
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
+#[cfg(feature = "openapi")]
 use utoipa::{
     openapi::{schema::SchemaType, SchemaFormat, Type},
     PartialSchema,
@@ -28,6 +29,9 @@ pub const SEPARATOR: char = 'ː';
 pub mod blake3;
 /// fingerprint module
 pub mod fingerprint;
+#[cfg(feature = "node")]
+/// node module
+pub mod node;
 #[cfg(feature = "git")]
 /// git module
 pub mod oid;
@@ -72,6 +76,8 @@ pub(crate) enum BinaryType {
     Uuid = 1 << 5,
     // Fingerprint
     Fingerprint = 1 << 6,
+    #[cfg(feature = "node")]
+    Node = 1 << 7,
 }
 
 impl From<char> for BinaryType {
@@ -90,6 +96,8 @@ impl From<char> for BinaryType {
             #[cfg(feature = "uuid")]
             'i' => Self::Uuid,
             'f' => Self::Fingerprint,
+            #[cfg(feature = "node")]
+            'n' => Self::Node,
             _ => Self::Unknown,
         }
     }
@@ -99,19 +107,21 @@ impl BinaryType {
     fn char_code(&self) -> char {
         match self {
             #[cfg(feature = "sha1")]
-            Self::Sha1 => '1',
+            BinaryType::Sha1 => '1',
             #[cfg(feature = "sha2")]
-            Self::Sha256 => '2',
+            BinaryType::Sha256 => '2',
             #[cfg(feature = "sha3")]
-            Self::Sha3_512 => '3',
+            BinaryType::Sha3_512 => '3',
             #[cfg(feature = "blake3")]
-            Self::Blake3 => 'b',
+            BinaryType::Blake3 => 'b',
             #[cfg(feature = "ulid")]
-            Self::Ulid => 'u',
+            BinaryType::Ulid => 'u',
             #[cfg(feature = "uuid")]
-            Self::Uuid => 'i',
-            Self::Unknown => '0',
-            Self::Fingerprint => 'f',
+            BinaryType::Uuid => 'i',
+            BinaryType::Unknown => '0',
+            BinaryType::Fingerprint => 'f',
+            #[cfg(feature = "node")]
+            BinaryType::Node => 'n',
         }
     }
 }
@@ -120,19 +130,21 @@ impl Display for BinaryType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             #[cfg(feature = "sha1")]
-            Self::Sha1 => write!(f, "sha1"),
+            BinaryType::Sha1 => write!(f, "sha1"),
             #[cfg(feature = "sha2")]
-            Self::Sha256 => write!(f, "sha256"),
+            BinaryType::Sha256 => write!(f, "sha256"),
             #[cfg(feature = "sha3")]
-            Self::Sha3_512 => write!(f, "sha3-512"),
+            BinaryType::Sha3_512 => write!(f, "sha3-512"),
             #[cfg(feature = "blake3")]
-            Self::Blake3 => write!(f, "blake3"),
+            BinaryType::Blake3 => write!(f, "blake3"),
             #[cfg(feature = "ulid")]
-            Self::Ulid => write!(f, "ulid"),
+            BinaryType::Ulid => write!(f, "ulid"),
             #[cfg(feature = "uuid")]
-            Self::Uuid => write!(f, "uuid"),
-            Self::Unknown => write!(f, "unknown"),
-            Self::Fingerprint => write!(f, "fingerprint"),
+            BinaryType::Uuid => write!(f, "uuid"),
+            BinaryType::Unknown => write!(f, "unknown"),
+            BinaryType::Fingerprint => write!(f, "fingerprint"),
+            #[cfg(feature = "node")]
+            BinaryType::Node => write!(f, "node"),
         }
     }
 }
@@ -179,20 +191,36 @@ impl ToSchema for OkId {
 impl PartialEq for OkId {
     fn eq(&self, other: &Self) -> bool {
         match (&self.digest, &other.digest) {
+            #[cfg(feature = "sha1")]
             (Digest::Sha1(a), Digest::Sha1(b)) => a == b,
+            #[cfg(feature = "sha1")]
             (Digest::Sha1(_), _) => false,
+            #[cfg(feature = "sha2")]
             (Digest::Sha256(a), Digest::Sha256(b)) => a == b,
+            #[cfg(feature = "sha2")]
             (Digest::Sha256(_), _) => false,
+            #[cfg(feature = "sha3")]
             (Digest::Sha512(a), Digest::Sha512(b)) => a == b,
+            #[cfg(feature = "sha3")]
             (Digest::Sha512(_), _) => false,
+            #[cfg(feature = "sha3")]
             (Digest::Blake3(a), Digest::Blake3(b)) => a == b,
+            #[cfg(feature = "blake3")]
             (Digest::Blake3(_), _) => false,
+            #[cfg(feature = "ulid")]
             (Digest::Ulid(a), Digest::Ulid(b)) => a == b,
+            #[cfg(feature = "ulid")]
             (Digest::Ulid(_), _) => false,
+            #[cfg(feature = "uuid")]
             (Digest::Uuid(a), Digest::Uuid(b)) => a == b,
+            #[cfg(feature = "uuid")]
             (Digest::Uuid(_), _) => false,
             (Digest::Fingerprint(a), Digest::Fingerprint(b)) => a == b,
             (Digest::Fingerprint(_), _) => false,
+            #[cfg(feature = "node")]
+            (Digest::Node(a), Digest::Node(b)) => a == b,
+            #[cfg(feature = "node")]
+            (Digest::Node(_), _) => false,
         }
     }
 }
@@ -202,6 +230,7 @@ impl Eq for OkId {}
 impl PartialOrd for OkId {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         match (&self.digest, &other.digest) {
+            #[cfg(feature = "ulid")]
             (Digest::Ulid(a), Digest::Ulid(b)) => a.0.partial_cmp(&b.0),
             _ => None,
         }
@@ -212,13 +241,21 @@ impl Hash for OkId {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.hash_type.hash(state);
         match &self.digest {
+            #[cfg(feature = "sha1")]
             Digest::Sha1(d) => d.hash(state),
+            #[cfg(feature = "sha2")]
             Digest::Sha256(d) => d.hash(state),
+            #[cfg(feature = "sha3")]
             Digest::Sha512(d) => d.hash(state),
+            #[cfg(feature = "blake3")]
             Digest::Blake3(d) => d.hash(state),
+            #[cfg(feature = "ulid")]
             Digest::Ulid(d) => d.hash(state),
+            #[cfg(feature = "uuid")]
             Digest::Uuid(d) => d.hash(state),
             Digest::Fingerprint(d) => d.hash(state),
+            #[cfg(feature = "node")]
+            Digest::Node(d) => d.hash(state),
         }
     }
 }
@@ -322,6 +359,11 @@ fn parse_okid(s: &str) -> Result<OkId, Error> {
             hash_type,
             digest: Digest::Fingerprint(rest.parse()?),
         }),
+        #[cfg(feature = "node")]
+        BinaryType::Node => Ok(OkId {
+            hash_type,
+            digest: Digest::Node(rest.parse()?),
+        }),
     }
 }
 
@@ -341,6 +383,8 @@ enum Digest {
     #[cfg(feature = "uuid")]
     Uuid(crate::uuid::Uuid),
     Fingerprint(crate::fingerprint::Fingerprint),
+    #[cfg(feature = "node")]
+    Node(crate::node::Node),
 }
 
 impl Display for OkId {
@@ -361,6 +405,8 @@ impl Display for OkId {
             #[cfg(feature = "uuid")]
             Digest::Uuid(uuid) => uuid.fmt(f),
             Digest::Fingerprint(fingerprint) => fingerprint.fmt(f),
+            #[cfg(feature = "node")]
+            Digest::Node(node) => node.fmt(f),
         }
     }
 }
@@ -384,6 +430,8 @@ impl std::fmt::Debug for OkId {
             Digest::Uuid(uuid) => std::fmt::Display::fmt(uuid, f),
 
             Digest::Fingerprint(fingerprint) => std::fmt::Display::fmt(fingerprint, f),
+            #[cfg(feature = "node")]
+            Digest::Node(node) => std::fmt::Display::fmt(node, f),
         }
     }
 }
@@ -421,13 +469,21 @@ impl jetstream_wireformat::WireFormat for OkId {
         1
             // digest length
         + match self.digest {
+            #[cfg(feature = "sha1")]
             Digest::Sha1(sha1) => sha1.0.len() as u32 ,
+            #[cfg(feature = "sha2")]
             Digest::Sha256(sha256) => sha256.0.len() as u32 ,
+            #[cfg(feature = "sha3")]
             Digest::Sha512(sha512) => sha512.0.len() as u32,
+            #[cfg(feature = "blake3")]
             Digest::Blake3(blake3) => blake3.0.len() as u32,
+            #[cfg(feature = "ulid")]
             Digest::Ulid(_ulid) => 128 / 8,
+            #[cfg(feature = "uuid")]
             Digest::Uuid(_uuid) => 128 / 8,
             Digest::Fingerprint(_fingerprint) => 64 / 8,
+            #[cfg(feature = "node")]
+            Digest::Node(_node) => 6 ,
         }
     }
 
@@ -452,6 +508,10 @@ impl jetstream_wireformat::WireFormat for OkId {
             }
             Digest::Fingerprint(fingerprint) => {
                 u64::encode(&fingerprint.0, writer)?;
+            }
+            #[cfg(feature = "node")]
+            Digest::Node(node) => {
+                Data::encode(&Data(node.0.into()), writer)?;
             }
         }
 
@@ -491,6 +551,7 @@ impl jetstream_wireformat::WireFormat for OkId {
                     digest: Digest::Sha256(crate::sha2::Sha256(buf)),
                 })
             }
+            #[cfg(feature = "sha3")]
             BinaryType::Sha3_512 => {
                 let data = Data::decode(reader)?;
                 let data = data.get(0..64).unwrap();
@@ -503,6 +564,7 @@ impl jetstream_wireformat::WireFormat for OkId {
                     digest: Digest::Sha512(crate::sha3::Sha512(buf)),
                 })
             }
+            #[cfg(feature = "blake3")]
             BinaryType::Blake3 => {
                 let data = Data::decode(reader)?;
                 let data = data.get(0..32).unwrap();
@@ -515,6 +577,7 @@ impl jetstream_wireformat::WireFormat for OkId {
                     digest: Digest::Blake3(crate::blake3::Blake3(buf)),
                 })
             }
+            #[cfg(feature = "ulid")]
             BinaryType::Ulid => {
                 let data = u128::decode(reader)?;
                 Ok(OkId {
@@ -522,6 +585,7 @@ impl jetstream_wireformat::WireFormat for OkId {
                     digest: Digest::Ulid(crate::ulid::Ulid(data)),
                 })
             }
+            #[cfg(feature = "uuid")]
             BinaryType::Uuid => {
                 let data = u128::decode(reader)?;
                 Ok(OkId {
@@ -534,6 +598,19 @@ impl jetstream_wireformat::WireFormat for OkId {
                 Ok(OkId {
                     hash_type: BinaryType::Fingerprint,
                     digest: Digest::Fingerprint(crate::fingerprint::Fingerprint(data)),
+                })
+            }
+            #[cfg(feature = "node")]
+            BinaryType::Node => {
+                let data = Data::decode(reader)?;
+                let data = data.get(0..6).unwrap();
+                let mut buf = [0; 6];
+                if data.len() == 6 {
+                    buf.copy_from_slice(data);
+                }
+                Ok(OkId {
+                    hash_type: BinaryType::Node,
+                    digest: Digest::Node(crate::node::Node(buf)),
                 })
             }
         }
@@ -805,5 +882,15 @@ mod okid_tests {
         let mut _reader = std::io::Cursor::new(byts);
 
         assert_eq!(file, new_file);
+    }
+
+    #[cfg(feature = "node")]
+    #[test]
+    fn test_node_display() {
+        use mac_address::MacAddressIterator;
+        let binary_id = OkId::from(
+            MacAddressIterator::new().unwrap_or_else(|_| panic!("No mac address found")),
+        );
+        assert_eq!(binary_id.to_string().len(), 15);
     }
 }
