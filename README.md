@@ -16,7 +16,7 @@ such as `sha1` hashes, `uuid`s and more.
 ```
 ## sha256
 ```rust
-#[cfg(feature = "sha1")]
+#[cfg(feature = "sha2")]
 {
     use sha2::Digest;
     let mut hasher = sha2::Sha256::new();
