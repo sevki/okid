@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/sevki/okid/compare/v0.5.0...v0.5.1) (2024-11-20)
+
+
+### Bug Fixes
+
+* lockfile ([9634d44](https://github.com/sevki/okid/commit/9634d444382af4c4716bffc683ef7a08f4585455))
+
 ## [0.5.0](https://github.com/sevki/okid/compare/v0.4.2...v0.5.0) (2024-11-20)
 
 
