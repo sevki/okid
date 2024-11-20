@@ -637,6 +637,7 @@ mod okid_tests {
     use jetstream_wireformat::JetStreamWireFormat;
     #[cfg(feature = "sha1")]
     use sha1::Digest as sha1digest;
+    #[cfg(feature = "sha2")]
     use sha2::Digest;
 
     use crate::OkId;
@@ -871,6 +872,7 @@ mod okid_tests {
     #[cfg(feature = "sha1")]
     #[test]
     fn test_serde_file_sha1() {
+        use jetstream_wireformat::wire_format_extensions::ConvertWireFormat;
         let mut hasher = sha1::Sha1::new();
         hasher.update(b"hello world");
         let binary_id = OkId::from(hasher);
