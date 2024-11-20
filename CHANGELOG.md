@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/sevki/okid/compare/v0.4.2...v0.5.0) (2024-11-20)
+
+
+### Features
+
+* node id ([3d9f42a](https://github.com/sevki/okid/commit/3d9f42a7c6e6743ba0081086fc0223ea115a4087))
+
+
+### Bug Fixes
+
+* Update README.md feature flag ([024b216](https://github.com/sevki/okid/commit/024b2169ec501e6121e7ff33fe171390f6c0df26))
+
 ## [0.4.2](https://github.com/sevki/okid/compare/v0.4.1...v0.4.2) (2024-11-10)
 
 
