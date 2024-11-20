@@ -637,6 +637,7 @@ mod okid_tests {
     use jetstream_wireformat::JetStreamWireFormat;
     #[cfg(feature = "sha1")]
     use sha1::Digest as sha1digest;
+    use sha2::Digest;
 
     use crate::OkId;
     #[cfg(feature = "sha1")]
@@ -867,7 +868,6 @@ mod okid_tests {
     #[derive(JetStreamWireFormat, Debug, Eq, PartialEq)]
     pub struct File(pub OkId, pub ChunkMap);
 
-    use jetstream_wireformat::wire_format_extensions::ConvertWireFormat;
     #[cfg(feature = "sha1")]
     #[test]
     fn test_serde_file_sha1() {
