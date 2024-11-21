@@ -947,9 +947,9 @@ checksum = "540654e97a3f4470a492cd30ff187bc95d89557a903a2bbf112e2fae98104ef2"
 
 [[package]]
 name = "jetstream_macros"
-version = "6.6.1"
+version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7480550d22db8ed8764e3bba4836a918555af1ec2442aed685dbe82465dbb3f"
+checksum = "92aa7629ad286e655ba6c82b921715246e961b0b7bbe2d5c08fc32ff39a57ea9"
 dependencies = [
  "convert_case",
  "paste",
@@ -961,9 +961,9 @@ dependencies = [
 
 [[package]]
 name = "jetstream_wireformat"
-version = "6.6.0"
+version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99d6afdc253f24bb9e5fdd99411de978d52a0441e7affe3076e71cec01124b8c"
+checksum = "0e14c6472ecc99b2536be395d9f867b65b1975ad147652de18302f1cb41344a3"
 dependencies = [
  "bytes",
  "futures",
@@ -1367,9 +1367,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.89"
+version = "1.0.91"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f139b0662de085916d1fb67d2b4169d1addddda1919e696f3252b740b629986e"
+checksum = "307e3004becf10f5a6e0d59d20f3cd28231b0e0827a96cd3e0ce6d14bc1e4bb3"
 dependencies = [
  "unicode-ident",
 ]
@@ -1671,9 +1671,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.87"
+version = "2.0.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25aa4ce346d03a6dcd68dd8b4010bcb74e54e62c90c573f394c46eae99aba32d"
+checksum = "44d46482f1c1c87acd84dea20c1bf5ebff4c757009ed6bf19cfd36fb10e92c4e"
 dependencies = [
  "proc-macro2",
  "quote",
