@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.2](https://github.com/sevki/okid/compare/v0.5.1...v0.5.2) (2024-11-21)
+
+
+### Bug Fixes
+
+* broken no-default-features ([bac10cc](https://github.com/sevki/okid/commit/bac10cc2f2991608ea0fc2b56b62b7a26d0d43ee))
+* pin wireformat version to 6.6.0 ([bf06dc0](https://github.com/sevki/okid/commit/bf06dc0625a09c736eba1891975285b21d88b822))
+
 ## [0.5.1](https://github.com/sevki/okid/compare/v0.5.0...v0.5.1) (2024-11-20)
 
 
