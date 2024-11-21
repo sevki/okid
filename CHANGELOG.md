@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/sevki/okid/compare/v0.5.2...v0.5.3) (2024-11-21)
+
+
+### Bug Fixes
+
+* bump jetstream_wireformat ([8e44343](https://github.com/sevki/okid/commit/8e443431f966d46ca22cb7f77c4f429a47f32117))
+
 ## [0.5.2](https://github.com/sevki/okid/compare/v0.5.1...v0.5.2) (2024-11-21)
 
 
