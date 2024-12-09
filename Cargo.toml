@@ -7,7 +7,7 @@ description = "A library for gereating double clickable ids"
 license = "BSD-3-Clause"
 
 [dependencies]
-async-graphql = { version = "7.0.11", optional = true }
+async-graphql = { version = "7.0.12", optional = true }
 blake3 = { version = "1.5.4", optional = true }
 bytes = { version = "1.7.2", features = ["serde"] }
 digest = "0.10.7"
