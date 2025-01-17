@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.4](https://github.com/sevki/okid/compare/v0.5.3...v0.5.4) (2025-01-17)
+
+
+### Bug Fixes
+
+* release new version ([bd9b841](https://github.com/sevki/okid/commit/bd9b8412c5b71ae1bbee074349c3c60663c0b4b0))
+
 ## [0.5.3](https://github.com/sevki/okid/compare/v0.5.2...v0.5.3) (2024-11-21)
 
 
