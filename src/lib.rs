@@ -17,7 +17,7 @@ use serde_json::json;
 use utoipa::ToSchema;
 #[cfg(feature = "openapi")]
 use utoipa::{
-    openapi::{schema::SchemaType, SchemaFormat, Type},
+    openapi::{schema::SchemaType, SchemaFormat, Type as UType},
     PartialSchema,
 };
 
@@ -164,7 +164,7 @@ async_graphql::scalar!(OkId);
 impl PartialSchema for OkId {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         let mut o = utoipa::openapi::schema::Object::new();
-        o.schema_type = SchemaType::new(Type::String);
+        o.schema_type = SchemaType::new(UType::String);
         o.example = Some(json!(format!(
             "2{SEPARATOR}00b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
         )
