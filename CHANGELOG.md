@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/sevki/okid/compare/v0.5.5...v0.6.0) (2025-01-21)
+
+
+### Features
+
+* try from okid ([0ce12fc](https://github.com/sevki/okid/commit/0ce12fc8682bca363fc3a15ab60934d8cc85722c))
+
 ## [0.5.5](https://github.com/sevki/okid/compare/v0.5.4...v0.5.5) (2025-01-17)
 
 
