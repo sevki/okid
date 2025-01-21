@@ -39,3 +39,14 @@ impl From<Ulid> for ulid::Ulid {
         ulid::Ulid(val.0)
     }
 }
+
+impl TryFrom<OkId> for ulid::Ulid {
+    type Error = crate::Error;
+
+    fn try_from(value: OkId) -> Result<Self, Self::Error> {
+        match value.digest {
+            super::Digest::Ulid(ulid) => Ok(ulid.into()),
+            _ => Err(crate::Error::InvalidHashType),
+        }
+    }
+}
