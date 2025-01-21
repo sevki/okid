@@ -34,3 +34,14 @@ impl FromStr for Fingerprint {
         Ok(Fingerprint(u64::from_be_bytes(hash)))
     }
 }
+
+impl TryFrom<OkId> for u64 {
+    type Error = super::Error;
+
+    fn try_from(value: OkId) -> Result<Self, Self::Error> {
+        match value.digest {
+            Digest::Fingerprint(Fingerprint(value)) => Ok(value),
+            _ => Err(super::Error::InvalidHashType),
+        }
+    }
+}

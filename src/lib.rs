@@ -627,7 +627,7 @@ impl std::convert::AsRef<[u8]> for OkId {
 }
 
 /// Create a path-safe string from an OkId
-pub fn pathsafe(id: OkId) -> impl AsRef<[u8]> {
+pub fn pathsafe(id: OkId) -> String {
     format!("1/{}", id.to_string().replace(SEPARATOR, "/"))
 }
 

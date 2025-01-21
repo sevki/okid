@@ -39,3 +39,14 @@ impl From<Uuid> for uuid::Uuid {
         uuid::Uuid::from_u128(val.0)
     }
 }
+
+impl TryFrom<OkId> for uuid::Uuid {
+    type Error = crate::Error;
+
+    fn try_from(value: OkId) -> Result<Self, Self::Error> {
+        match value.digest {
+            super::Digest::Uuid(uuid) => Ok(uuid.into()),
+            _ => Err(crate::Error::InvalidHashType),
+        }
+    }
+}
