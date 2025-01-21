@@ -946,9 +946,9 @@ checksum = "d75a2a4b1b190afb6f5425f10f6a8f959d2ea0b9c2b1d79553551850539e4674"
 
 [[package]]
 name = "jetstream_macros"
-version = "7.3.0"
+version = "7.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9cbd38f6803d0fd2a0304db4be52946d19eef7217a1629c387d7966d91aea089"
+checksum = "aad2b7cab10897af88930b2c5beb256ae4835bde1ce4e0b9b6b6ba3d749e12f5"
 dependencies = [
  "convert_case",
  "paste",
@@ -960,12 +960,13 @@ dependencies = [
 
 [[package]]
 name = "jetstream_wireformat"
-version = "7.3.0"
+version = "7.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fdaf5bc2c35bebca645b579dffddc1d644fc53ecfe82a0817b14ae9506cc0b7b"
+checksum = "dc88deee6cd5dd9a92821b1e48a6d3c99b014fc1a825b77e075205dab744f977"
 dependencies = [
  "bytes",
  "futures",
+ "futures-util",
  "jetstream_macros",
  "libc",
  "okstd",
@@ -1191,7 +1192,7 @@ dependencies = [
 
 [[package]]
 name = "okid"
-version = "0.5.4"
+version = "0.5.5"
 dependencies = [
  "async-graphql",
  "blake3",
