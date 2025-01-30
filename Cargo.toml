@@ -45,4 +45,4 @@ graphql = ["dep:async-graphql"]
 node = ["dep:mac_address"]
 
 [dev-dependencies]
-insta = { version = "1.40.0", features = ["yaml"] }
+insta = { version = "1.42.1", features = ["yaml"] }
