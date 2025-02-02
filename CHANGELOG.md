@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2](https://github.com/sevki/okid/compare/v0.6.1...v0.6.2) (2025-02-02)
+
+
+### Bug Fixes
+
+* binary lenghts of hashes ([0e6b205](https://github.com/sevki/okid/commit/0e6b205082cc7e63e0ab1fa1e8d8b4165f22c405))
+
 ## [0.6.1](https://github.com/sevki/okid/compare/v0.6.0...v0.6.1) (2025-01-30)
 
 
