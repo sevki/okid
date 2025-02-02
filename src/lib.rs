@@ -7,8 +7,9 @@
 use std::{fmt::Display, hash::Hash, str::FromStr};
 
 use digest::OutputSizeUser;
-
+#[cfg(feature = "node")]
 use jetstream_wireformat::Data;
+
 use serde::{Deserialize, Serialize};
 
 use serde_json::json;
@@ -51,8 +52,8 @@ pub mod ulid;
 /// uuid module
 pub mod uuid;
 
-#[repr(u8)]
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Hash)]
+#[repr(u8)]
 pub(crate) enum BinaryType {
     // Unknown
     Unknown = 0,
@@ -428,7 +429,6 @@ impl std::fmt::Debug for OkId {
             Digest::Ulid(ulid) => std::fmt::Display::fmt(ulid, f),
             #[cfg(feature = "uuid")]
             Digest::Uuid(uuid) => std::fmt::Display::fmt(uuid, f),
-
             Digest::Fingerprint(fingerprint) => std::fmt::Display::fmt(fingerprint, f),
             #[cfg(feature = "node")]
             Digest::Node(node) => std::fmt::Display::fmt(node, f),
@@ -470,13 +470,13 @@ impl jetstream_wireformat::WireFormat for OkId {
             // digest length
         + match self.digest {
             #[cfg(feature = "sha1")]
-            Digest::Sha1(sha1) => sha1.0.len() as u32 ,
+            Digest::Sha1(sha1) => sha1.0.len() as u32,
             #[cfg(feature = "sha2")]
-            Digest::Sha256(sha256) => sha256.0.len() as u32 ,
+            Digest::Sha256(sha256) => sha256.0.len() as u32,
             #[cfg(feature = "sha3")]
             Digest::Sha512(sha512) => sha512.0.len() as u32,
             #[cfg(feature = "blake3")]
-            Digest::Blake3(blake3) => blake3.0.len() as u32,
+            Digest::Blake3(blake3) => blake3.0.len() as u32 ,
             #[cfg(feature = "ulid")]
             Digest::Ulid(_ulid) => 128 / 8,
             #[cfg(feature = "uuid")]
@@ -493,13 +493,13 @@ impl jetstream_wireformat::WireFormat for OkId {
 
         match &self.digest {
             #[cfg(feature = "sha1")]
-            Digest::Sha1(sha1) => Data::encode(&Data(sha1.0.into()), writer)?,
+            Digest::Sha1(sha1) => writer.write_all(&sha1.0)?,
             #[cfg(feature = "sha2")]
-            Digest::Sha256(sha256) => Data::encode(&Data(sha256.0.into()), writer)?,
+            Digest::Sha256(sha256) => writer.write_all(&sha256.0)?,
             #[cfg(feature = "sha3")]
-            Digest::Sha512(sha512) => Data::encode(&Data(sha512.0.into()), writer)?,
+            Digest::Sha512(sha512) => writer.write_all(&sha512.0)?,
             #[cfg(feature = "blake3")]
-            Digest::Blake3(blake3) => Data::encode(&Data(blake3.0.into()), writer)?,
+            Digest::Blake3(blake3) => writer.write_all(&blake3.0)?,
             #[cfg(feature = "ulid")]
             Digest::Ulid(ulid) => u128::encode(&ulid.0, writer)?,
             #[cfg(feature = "uuid")]
@@ -527,12 +527,8 @@ impl jetstream_wireformat::WireFormat for OkId {
             )),
             #[cfg(feature = "sha1")]
             BinaryType::Sha1 => {
-                let data = Data::decode(reader)?;
-                let data = data.get(0..20).unwrap();
                 let mut buf = [0; 20];
-                if data.len() == 20 {
-                    buf.copy_from_slice(data);
-                }
+                reader.read_exact(&mut buf)?;
                 Ok(OkId {
                     hash_type: BinaryType::Sha1,
                     digest: Digest::Sha1(crate::sha1::Sha1(buf)),
@@ -540,12 +536,8 @@ impl jetstream_wireformat::WireFormat for OkId {
             }
             #[cfg(feature = "sha2")]
             BinaryType::Sha256 => {
-                let data = Data::decode(reader)?;
-                let data = data.get(0..32).unwrap();
                 let mut buf = [0; 32];
-                if data.len() == 32 {
-                    buf.copy_from_slice(data);
-                }
+                reader.read_exact(&mut buf)?;
                 Ok(OkId {
                     hash_type: BinaryType::Sha256,
                     digest: Digest::Sha256(crate::sha2::Sha256(buf)),
@@ -553,12 +545,8 @@ impl jetstream_wireformat::WireFormat for OkId {
             }
             #[cfg(feature = "sha3")]
             BinaryType::Sha3_512 => {
-                let data = Data::decode(reader)?;
-                let data = data.get(0..64).unwrap();
                 let mut buf = [0; 64];
-                if data.len() == 64 {
-                    buf.copy_from_slice(data);
-                }
+                reader.read_exact(&mut buf)?;
                 Ok(OkId {
                     hash_type: BinaryType::Sha3_512,
                     digest: Digest::Sha512(crate::sha3::Sha512(buf)),
@@ -566,12 +554,8 @@ impl jetstream_wireformat::WireFormat for OkId {
             }
             #[cfg(feature = "blake3")]
             BinaryType::Blake3 => {
-                let data = Data::decode(reader)?;
-                let data = data.get(0..32).unwrap();
                 let mut buf = [0; 32];
-                if data.len() == 32 {
-                    buf.copy_from_slice(data);
-                }
+                reader.read_exact(&mut buf)?;
                 Ok(OkId {
                     hash_type: BinaryType::Blake3,
                     digest: Digest::Blake3(crate::blake3::Blake3(buf)),
@@ -643,7 +627,7 @@ mod okid_tests {
     use crate::OkId;
     #[cfg(feature = "sha1")]
     #[test]
-    fn test_display() {
+    fn display() {
         let hasher = sha1::Sha1::new();
         let binary_id = OkId::from(hasher);
         insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
@@ -652,7 +636,7 @@ mod okid_tests {
     }
     #[cfg(feature = "sha1")]
     #[test]
-    fn test_display_hello_world() {
+    fn display_hello_world() {
         let mut hasher = sha1::Sha1::new();
         hasher.update(b"hello world");
         let binary_id = OkId::from(hasher);
@@ -662,7 +646,7 @@ mod okid_tests {
     }
     #[cfg(feature = "sha2")]
     #[test]
-    fn test_display_hello_world_sha256() {
+    fn display_hello_world_sha256() {
         let mut hasher = sha2::Sha256::new();
         hasher.update(b"hello world");
         let binary_id = OkId::from(hasher);
@@ -673,7 +657,7 @@ mod okid_tests {
 
     #[cfg(feature = "sha3")]
     #[test]
-    fn test_display_hello_world_sha3() {
+    fn display_hello_world_sha3() {
         let mut hasher = sha3::Sha3_512::new();
         hasher.update(b"hello world");
         let binary_id = OkId::from(hasher);
@@ -684,7 +668,7 @@ mod okid_tests {
 
     #[cfg(feature = "blake3")]
     #[test]
-    fn test_display_hello_world_blake3() {
+    fn display_hello_world_blake3() {
         let mut hasher = blake3::Hasher::new();
         hasher.update(b"hello world");
         let binary_id = OkId::from(hasher);
@@ -695,7 +679,7 @@ mod okid_tests {
 
     #[cfg(feature = "ulid")]
     #[test]
-    fn test_display_hello_world_ulid() {
+    fn display_hello_world_ulid() {
         let ulid = ulid::Ulid::from_parts(0x0192146907d25d66, 0x35da136af2f988ca);
         let binary_id = OkId::from(ulid);
         insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
@@ -705,7 +689,7 @@ mod okid_tests {
 
     #[cfg(feature = "uuid")]
     #[test]
-    fn test_display_hello_world_uuid() {
+    fn display_hello_world_uuid() {
         let uuid = uuid::Uuid::from_u128(0x73da51ba29654c53909fc283d33e39ba);
         let binary_id = OkId::from(uuid);
         insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
@@ -715,7 +699,7 @@ mod okid_tests {
 
     #[cfg(feature = "sha1")]
     #[test]
-    fn test_parse_hello_world() {
+    fn parse_hello_world() {
         let seperator = super::SEPARATOR;
         let hash = format!("1{seperator}2aae6c35c94fcfb415dbe95f408b9ce91ee846ed");
         let binary_id = hash.parse::<OkId>().unwrap();
@@ -727,7 +711,7 @@ mod okid_tests {
 
     #[cfg(feature = "sha2")]
     #[test]
-    fn test_parse_hello_world_sha256() {
+    fn parse_hello_world_sha256() {
         let seperator = super::SEPARATOR;
         let hash =
             format!("2{seperator}b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
@@ -740,7 +724,7 @@ mod okid_tests {
 
     #[cfg(feature = "sha3")]
     #[test]
-    fn test_parse_hello_world_sha3() {
+    fn parse_hello_world_sha3() {
         let seperator = super::SEPARATOR;
         let hash = format!("3{seperator}840006653e9ac9e95117a15c915caab81662918e925de9e004f774ff82d7079a40d4d27b1b372657c61d46d470304c88c788b3a4527ad074d1dccbee5dbaa99a");
         let binary_id = hash.parse::<OkId>().unwrap();
@@ -752,7 +736,7 @@ mod okid_tests {
 
     #[cfg(feature = "blake3")]
     #[test]
-    fn test_parse_hello_world_blake3() {
+    fn parse_hello_world_blake3() {
         let seperator = super::SEPARATOR;
         let hash =
             format!("b{seperator}d74981efa70a0c880b8d8c1985d075dbcbf679b99a5f9914e5aaf96b831a9e24");
@@ -765,7 +749,7 @@ mod okid_tests {
 
     #[cfg(feature = "ulid")]
     #[test]
-    fn test_parse_hello_world_ulid() {
+    fn parse_hello_world_ulid() {
         let seperator = super::SEPARATOR;
         let hash = format!("u{seperator}146907d25d66000035da136af2f988ca");
         let binary_id = hash.parse::<OkId>().unwrap();
@@ -777,21 +761,23 @@ mod okid_tests {
 
     #[cfg(feature = "sha1")]
     #[test]
-    fn test_wireformat_hello_world_sha1() {
+    fn wireformat_hello_world_sha1() {
         use jetstream_wireformat::WireFormat;
 
         let mut hasher = sha1::Sha1::new();
         hasher.update(b"hello world");
         let binary_id = OkId::from(hasher);
         let mut buf: Vec<u8> = vec![];
+        let size = binary_id.byte_size();
         OkId::encode(&binary_id, &mut buf).unwrap();
+        assert_eq!(size, buf.len() as u32);
         let new_binary_id = OkId::decode(&mut buf.as_slice()).unwrap();
         assert_eq!(binary_id.to_string(), new_binary_id.to_string(),);
     }
 
     #[cfg(feature = "sha2")]
     #[test]
-    fn test_wireformat_hello_world_sha256() {
+    fn wireformat_hello_world_sha256() {
         use jetstream_wireformat::WireFormat;
 
         let mut hasher = sha2::Sha256::new();
@@ -803,30 +789,49 @@ mod okid_tests {
         assert_eq!(binary_id.to_string(), new_binary_id.to_string(),);
     }
 
+    #[cfg(feature = "ulid")]
+    #[test]
+    fn wireformat_ulid() {
+        use jetstream_wireformat::WireFormat;
+
+        let ulid = ulid::Ulid::from_parts(0x0192146907d25d66, 0x35da136af2f988ca);
+        let binary_id = OkId::from(ulid);
+        let mut buf: Vec<u8> = vec![];
+        OkId::encode(&binary_id, &mut buf).unwrap();
+        let size = binary_id.byte_size();
+        assert_eq!(size, buf.len() as u32);
+        let new_binary_id = OkId::decode(&mut buf.as_slice()).unwrap();
+        assert_eq!(binary_id.to_string(), new_binary_id.to_string(),);
+    }
+
     #[cfg(feature = "sha3")]
     #[test]
-    fn test_wireformat_hello_world_sha3() {
+    fn wireformat_hello_world_sha3() {
         use jetstream_wireformat::WireFormat;
 
         let mut hasher = sha3::Sha3_512::new();
         hasher.update(b"hello world");
         let binary_id = OkId::from(hasher);
         let mut buf: Vec<u8> = vec![];
+        let size = binary_id.byte_size();
         OkId::encode(&binary_id, &mut buf).unwrap();
+        assert_eq!(size, buf.len() as u32);
         let new_binary_id = OkId::decode(&mut buf.as_slice()).unwrap();
         assert_eq!(binary_id.to_string(), new_binary_id.to_string(),);
     }
 
     #[cfg(feature = "blake3")]
     #[test]
-    fn test_wireformat_hello_world_blake3() {
+    fn wireformat_hello_world_blake3() {
         use jetstream_wireformat::WireFormat;
 
         let mut hasher = blake3::Hasher::new();
         hasher.update(b"hello world");
         let binary_id = OkId::from(hasher);
         let mut buf: Vec<u8> = vec![];
+        let size = binary_id.byte_size();
         OkId::encode(&binary_id, &mut buf).unwrap();
+        assert_eq!(size, buf.len() as u32);
         let new_binary_id = OkId::decode(&mut buf.as_slice()).unwrap();
         assert_eq!(binary_id.to_string(), new_binary_id.to_string(),);
     }
@@ -834,7 +839,7 @@ mod okid_tests {
     // test serde
     #[cfg(feature = "sha1")]
     #[test]
-    fn test_serde_hello_world_sha1() {
+    fn serde_hello_world_sha1() {
         use insta::assert_snapshot;
 
         let mut hasher = sha1::Sha1::new();
@@ -848,7 +853,7 @@ mod okid_tests {
 
     #[cfg(feature = "sha2")]
     #[test]
-    fn test_serde_hello_world_sha256() {
+    fn serde_hello_world_sha256() {
         use insta::assert_snapshot;
 
         let mut hasher = sha2::Sha256::new();
@@ -871,7 +876,7 @@ mod okid_tests {
 
     #[cfg(feature = "sha1")]
     #[test]
-    fn test_serde_file_sha1() {
+    fn serde_file_sha1() {
         use jetstream_wireformat::wire_format_extensions::ConvertWireFormat;
         let mut hasher = sha1::Sha1::new();
         hasher.update(b"hello world");
@@ -888,7 +893,7 @@ mod okid_tests {
 
     #[cfg(feature = "node")]
     #[test]
-    fn test_node_display() {
+    fn node_display() {
         use mac_address::MacAddressIterator;
         let binary_id = OkId::from(
             MacAddressIterator::new().unwrap_or_else(|_| panic!("No mac address found")),
