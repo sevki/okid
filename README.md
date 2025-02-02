@@ -1,6 +1,8 @@
 <img src="https://assets.ok.software/okid.png" align="right" width="200">
 
 # okid
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsevki%2Fokid.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsevki%2Fokid?ref=badge_shield)
+
 
 `okid` is a library for generating double clickable representations of various types of data,
 such as `sha1` hashes, `uuid`s and more.
@@ -30,3 +32,7 @@ The resulting strings look like this:
 first character of the string is the type of the binary data
 in this case 2 means sha256
 the rest of the string is the hexadecimal representation of the binary data
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsevki%2Fokid.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsevki%2Fokid?ref=badge_large)
