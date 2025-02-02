@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/sevki/okid/compare/v0.6.0...v0.6.1) (2025-01-30)
+
+
+### Bug Fixes
+
+* update wireformat ([93eca80](https://github.com/sevki/okid/commit/93eca80ad6009a19e019604d16537f44d4977983))
+
 ## [0.6.0](https://github.com/sevki/okid/compare/v0.5.5...v0.6.0) (2025-01-21)
 
 
