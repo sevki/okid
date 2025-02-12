@@ -1,7 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use digest::core_api::CoreWrapper;
-use sha3::Digest;
+use {digest::core_api::CoreWrapper, sha3::Digest};
 
 use super::OkId;
 

@@ -1,5 +1,7 @@
-use sha2::Digest;
-use std::{fmt::Display, str::FromStr};
+use {
+    sha2::Digest,
+    std::{fmt::Display, str::FromStr},
+};
 
 use crate::OkId;
 

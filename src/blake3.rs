@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::{BinaryType, Digest, IntoOkId, OkId};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(super) struct Blake3(pub(super) [u8; 32]);
 
 impl From<blake3::Hasher> for OkId {
