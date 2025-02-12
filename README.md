@@ -30,3 +30,13 @@ The resulting strings look like this:
 first character of the string is the type of the binary data
 in this case 2 means sha256
 the rest of the string is the hexadecimal representation of the binary data
+
+## okid macro
+
+The `okid!` macro can be used to parse `OkId`s from string literals at compile time.
+
+```rust
+use okid::{okid, OkId};
+#[cfg(feature = "sha2")]
+const HELLO_WORLD_SHA256: OkId = okid!("2ːb94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
+```

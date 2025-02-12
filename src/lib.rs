@@ -24,6 +24,14 @@ use utoipa::{
 
 /// Separator character for the OkId string representation
 pub const SEPARATOR: char = 'ː';
+/// Separator bytes for the OkId string representation
+pub const SEPARATOR_BYTES: [u8; 2] = [203, 144];
+/// Separator bytes length for the OkId string representation
+pub const SEPARATOR_BYTES_LEN: usize = 2;
+
+#[doc(hidden)]
+/// Macros module
+pub mod macros;
 
 #[cfg(feature = "blake3")]
 /// blake3 module
@@ -52,7 +60,7 @@ pub mod ulid;
 /// uuid module
 pub mod uuid;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Hash, Ord, Eq, PartialOrd)]
 #[repr(u8)]
 pub(crate) enum BinaryType {
     // Unknown
@@ -326,45 +334,61 @@ fn parse_okid(s: &str) -> Result<OkId, Error> {
     let rest = chars.collect::<String>();
     match hash_type {
         #[cfg(feature = "sha1")]
-        BinaryType::Sha1 => Ok(OkId {
-            hash_type,
-            digest: Digest::Sha1(rest.parse()?),
-        }),
+        BinaryType::Sha1 => {
+            Ok(OkId {
+                hash_type,
+                digest: Digest::Sha1(rest.parse()?),
+            })
+        }
         #[cfg(feature = "sha2")]
-        BinaryType::Sha256 => Ok(OkId {
-            hash_type,
-            digest: Digest::Sha256(rest.parse()?),
-        }),
+        BinaryType::Sha256 => {
+            Ok(OkId {
+                hash_type,
+                digest: Digest::Sha256(rest.parse()?),
+            })
+        }
         #[cfg(feature = "sha3")]
-        BinaryType::Sha3_512 => Ok(OkId {
-            hash_type,
-            digest: Digest::Sha512(rest.parse()?),
-        }),
+        BinaryType::Sha3_512 => {
+            Ok(OkId {
+                hash_type,
+                digest: Digest::Sha512(rest.parse()?),
+            })
+        }
         #[cfg(feature = "blake3")]
-        BinaryType::Blake3 => Ok(OkId {
-            hash_type,
-            digest: Digest::Blake3(rest.parse()?),
-        }),
+        BinaryType::Blake3 => {
+            Ok(OkId {
+                hash_type,
+                digest: Digest::Blake3(rest.parse()?),
+            })
+        }
         #[cfg(feature = "ulid")]
-        BinaryType::Ulid => Ok(OkId {
-            hash_type,
-            digest: Digest::Ulid(rest.parse()?),
-        }),
+        BinaryType::Ulid => {
+            Ok(OkId {
+                hash_type,
+                digest: Digest::Ulid(rest.parse()?),
+            })
+        }
         #[cfg(feature = "uuid")]
-        BinaryType::Uuid => Ok(OkId {
-            hash_type,
-            digest: Digest::Uuid(rest.parse()?),
-        }),
+        BinaryType::Uuid => {
+            Ok(OkId {
+                hash_type,
+                digest: Digest::Uuid(rest.parse()?),
+            })
+        }
         BinaryType::Unknown => todo!(),
-        BinaryType::Fingerprint => Ok(OkId {
-            hash_type,
-            digest: Digest::Fingerprint(rest.parse()?),
-        }),
+        BinaryType::Fingerprint => {
+            Ok(OkId {
+                hash_type,
+                digest: Digest::Fingerprint(rest.parse()?),
+            })
+        }
         #[cfg(feature = "node")]
-        BinaryType::Node => Ok(OkId {
-            hash_type,
-            digest: Digest::Node(rest.parse()?),
-        }),
+        BinaryType::Node => {
+            Ok(OkId {
+                hash_type,
+                digest: Digest::Node(rest.parse()?),
+            })
+        }
     }
 }
 
@@ -521,10 +545,12 @@ impl jetstream_wireformat::WireFormat for OkId {
     fn decode<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
         let binary_type = u8::decode(reader)?;
         match BinaryType::from(binary_type as char) {
-            BinaryType::Unknown => Err(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                format!("Unknown binary type: {}", binary_type as char),
-            )),
+            BinaryType::Unknown => {
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("Unknown binary type: {}", binary_type as char),
+                ))
+            }
             #[cfg(feature = "sha1")]
             BinaryType::Sha1 => {
                 let mut buf = [0; 20];
@@ -615,6 +641,274 @@ pub fn pathsafe(id: OkId) -> String {
     format!("1/{}", id.to_string().replace(SEPARATOR, "/"))
 }
 
+#[doc(hidden)]
+pub const fn const_parse_okid(s: &str) -> Option<OkId> {
+    // Check minimum length (type + separator + at least some content)
+    if s.len() < 1 + SEPARATOR_BYTES_LEN {
+        return None;
+    }
+
+    let bytes = s.as_bytes();
+
+    // Get hash type
+    let hash_type = match bytes[0] as char {
+        #[cfg(feature = "sha1")]
+        '1' => BinaryType::Sha1,
+        #[cfg(feature = "sha2")]
+        '2' => BinaryType::Sha256,
+        #[cfg(feature = "sha3")]
+        '3' => BinaryType::Sha3_512,
+        #[cfg(feature = "blake3")]
+        'b' => BinaryType::Blake3,
+        #[cfg(feature = "ulid")]
+        'u' => BinaryType::Ulid,
+        #[cfg(feature = "uuid")]
+        'i' => BinaryType::Uuid,
+        'f' => BinaryType::Fingerprint,
+        #[cfg(feature = "node")]
+        'n' => BinaryType::Node,
+        _ => return None,
+    };
+
+    // Check separator bytes
+    let mut i = 0;
+    while i < SEPARATOR_BYTES_LEN {
+        if bytes[1 + i] != SEPARATOR_BYTES[i] {
+            return None;
+        }
+        i += 1;
+    }
+
+    // Start of content is after type byte and separator bytes
+    let content_start = 1 + SEPARATOR_BYTES_LEN;
+
+    // Process remaining bytes based on hash type
+    match hash_type {
+        #[cfg(feature = "sha1")]
+        BinaryType::Sha1 => {
+            if s.len() != content_start + 40 {
+                // type + separator + 40 hex chars
+                return None;
+            }
+            match const_parse_sha1_bytes(bytes, content_start) {
+                Some(digest) => {
+                    Some(OkId {
+                        hash_type,
+                        digest: Digest::Sha1(digest),
+                    })
+                }
+                None => None,
+            }
+        }
+        #[cfg(feature = "sha2")]
+        BinaryType::Sha256 => {
+            if s.len() != content_start + 64 {
+                // type + separator + 64 hex chars
+                return None;
+            }
+            match const_parse_sha256_bytes(bytes, content_start) {
+                Some(digest) => {
+                    Some(OkId {
+                        hash_type,
+                        digest: Digest::Sha256(digest),
+                    })
+                }
+                None => None,
+            }
+        }
+        #[cfg(feature = "sha3")]
+        BinaryType::Sha3_512 => {
+            if s.len() != content_start + 128 {
+                // type + separator + 128 hex chars for SHA3-512
+                return None;
+            }
+            match const_parse_sha3_bytes(bytes, content_start) {
+                Some(digest) => {
+                    Some(OkId {
+                        hash_type,
+                        digest: Digest::Sha512(digest),
+                    })
+                }
+                None => None,
+            }
+        }
+        #[cfg(feature = "blake3")]
+        BinaryType::Blake3 => {
+            if s.len() != content_start + 64 {
+                // type + separator + 64 hex chars
+                return None;
+            }
+            match const_parse_blake3_bytes(bytes, content_start) {
+                Some(digest) => {
+                    Some(OkId {
+                        hash_type,
+                        digest: Digest::Blake3(digest),
+                    })
+                }
+                None => None,
+            }
+        }
+        #[cfg(feature = "ulid")]
+        BinaryType::Ulid => {
+            if s.len() != content_start + 32 {
+                // type + separator + 32 hex chars
+                return None;
+            }
+            match const_parse_ulid_bytes(bytes, content_start) {
+                Some(digest) => {
+                    Some(OkId {
+                        hash_type,
+                        digest: Digest::Ulid(digest),
+                    })
+                }
+                None => None,
+            }
+        }
+        #[cfg(feature = "uuid")]
+        BinaryType::Uuid => {
+            if s.len() != content_start + 32 {
+                // type + separator + 32 hex chars
+                return None;
+            }
+            match const_parse_uuid_bytes(bytes, content_start) {
+                Some(digest) => {
+                    Some(OkId {
+                        hash_type,
+                        digest: Digest::Uuid(digest),
+                    })
+                }
+                None => None,
+            }
+        }
+        _ => None,
+    }
+}
+
+const fn const_hex_to_byte(c: u8) -> Option<u8> {
+    match c {
+        b'0'..=b'9' => Some(c - b'0'),
+        b'a'..=b'f' => Some(c - b'a' + 10),
+        b'A'..=b'F' => Some(c - b'A' + 10),
+        _ => None,
+    }
+}
+
+#[cfg(feature = "sha1")]
+const fn const_parse_sha1_bytes(bytes: &[u8], start: usize) -> Option<crate::sha1::Sha1> {
+    let mut result = [0u8; 20];
+    let mut i = 0;
+    while i < 40 {
+        let high = match const_hex_to_byte(bytes[start + i]) {
+            Some(b) => b,
+            None => return None,
+        };
+        let low = match const_hex_to_byte(bytes[start + i + 1]) {
+            Some(b) => b,
+            None => return None,
+        };
+        result[i / 2] = (high << 4) | low;
+        i += 2;
+    }
+    Some(crate::sha1::Sha1(result))
+}
+
+#[cfg(feature = "sha2")]
+const fn const_parse_sha256_bytes(bytes: &[u8], start: usize) -> Option<crate::sha2::Sha256> {
+    let mut result = [0u8; 32];
+    let mut i = 0;
+    while i < 64 {
+        let high = match const_hex_to_byte(bytes[start + i]) {
+            Some(b) => b,
+            None => return None,
+        };
+        let low = match const_hex_to_byte(bytes[start + i + 1]) {
+            Some(b) => b,
+            None => return None,
+        };
+        result[i / 2] = (high << 4) | low;
+        i += 2;
+    }
+    Some(crate::sha2::Sha256(result))
+}
+
+#[cfg(feature = "sha3")]
+const fn const_parse_sha3_bytes(bytes: &[u8], start: usize) -> Option<crate::sha3::Sha512> {
+    let mut result = [0u8; 64];
+    let mut i = 0;
+    // Parse all 128 hex chars (64 bytes)
+    while i < 128 {
+        let high = match const_hex_to_byte(bytes[start + i]) {
+            Some(b) => b,
+            None => return None,
+        };
+        let low = match const_hex_to_byte(bytes[start + i + 1]) {
+            Some(b) => b,
+            None => return None,
+        };
+        result[i / 2] = (high << 4) | low;
+        i += 2;
+    }
+    Some(crate::sha3::Sha512(result))
+}
+
+#[cfg(feature = "blake3")]
+const fn const_parse_blake3_bytes(bytes: &[u8], start: usize) -> Option<crate::blake3::Blake3> {
+    let mut result = [0u8; 32];
+    let mut i = 0;
+    // Parse all 64 hex chars (32 bytes)
+    while i < 64 {
+        let high = match const_hex_to_byte(bytes[start + i]) {
+            Some(b) => b,
+            None => return None,
+        };
+        let low = match const_hex_to_byte(bytes[start + i + 1]) {
+            Some(b) => b,
+            None => return None,
+        };
+        result[i / 2] = (high << 4) | low;
+        i += 2;
+    }
+    Some(crate::blake3::Blake3(result))
+}
+
+#[cfg(feature = "ulid")]
+const fn const_parse_ulid_bytes(bytes: &[u8], start: usize) -> Option<crate::ulid::Ulid> {
+    let mut result: u128 = 0;
+    let mut i = 0;
+    while i < 32 {
+        let high = match const_hex_to_byte(bytes[start + i]) {
+            Some(b) => b,
+            None => return None,
+        };
+        let low = match const_hex_to_byte(bytes[start + i + 1]) {
+            Some(b) => b,
+            None => return None,
+        };
+        result = (result << 8) | (((high << 4) | low) as u128);
+        i += 2;
+    }
+    Some(crate::ulid::Ulid(result))
+}
+
+#[cfg(feature = "uuid")]
+const fn const_parse_uuid_bytes(bytes: &[u8], start: usize) -> Option<crate::uuid::Uuid> {
+    let mut result: u128 = 0;
+    let mut i = 0;
+    while i < 32 {
+        let high = match const_hex_to_byte(bytes[start + i]) {
+            Some(b) => b,
+            None => return None,
+        };
+        let low = match const_hex_to_byte(bytes[start + i + 1]) {
+            Some(b) => b,
+            None => return None,
+        };
+        result = (result << 8) | (((high << 4) | low) as u128);
+        i += 2;
+    }
+    Some(crate::uuid::Uuid(result))
+}
+
 #[cfg(test)]
 mod okid_tests {
 
@@ -624,7 +918,7 @@ mod okid_tests {
     #[cfg(feature = "sha2")]
     use sha2::Digest;
 
-    use crate::OkId;
+    use crate::{const_parse_okid, OkId, SEPARATOR_BYTES, SEPARATOR_BYTES_LEN};
     #[cfg(feature = "sha1")]
     #[test]
     fn display() {
@@ -804,6 +1098,34 @@ mod okid_tests {
         assert_eq!(binary_id.to_string(), new_binary_id.to_string(),);
     }
 
+    #[cfg(feature = "uuid")]
+    #[test]
+    fn wireformat_uuid() {
+        use jetstream_wireformat::WireFormat;
+
+        let uuid = uuid::Uuid::from_u128(0x73da51ba29654c53909fc283d33e39ba);
+        let binary_id = OkId::from(uuid);
+        let mut buf: Vec<u8> = vec![];
+        OkId::encode(&binary_id, &mut buf).unwrap();
+        let size = binary_id.byte_size();
+        assert_eq!(size, buf.len() as u32);
+        let new_binary_id = OkId::decode(&mut buf.as_slice()).unwrap();
+        assert_eq!(binary_id.to_string(), new_binary_id.to_string(),);
+    }
+
+    #[test]
+    fn wireformat_fingerprint() {
+        use jetstream_wireformat::WireFormat;
+
+        let binary_id = OkId::from(0x73da51ba29654c53);
+        let mut buf: Vec<u8> = vec![];
+        OkId::encode(&binary_id, &mut buf).unwrap();
+        let size = binary_id.byte_size();
+        assert_eq!(size, buf.len() as u32);
+        let new_binary_id = OkId::decode(&mut buf.as_slice()).unwrap();
+        assert_eq!(binary_id.to_string(), new_binary_id.to_string(),);
+    }
+
     #[cfg(feature = "sha3")]
     #[test]
     fn wireformat_hello_world_sha3() {
@@ -899,5 +1221,127 @@ mod okid_tests {
             MacAddressIterator::new().unwrap_or_else(|_| panic!("No mac address found")),
         );
         assert_eq!(binary_id.to_string().len(), 15);
+    }
+
+    #[test]
+    fn test_separator_bytes() {
+        let test_str = "2ːb94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9";
+        let bytes = test_str.as_bytes();
+        let mut i = 0;
+        while i < SEPARATOR_BYTES_LEN {
+            assert_eq!(
+                bytes[1 + i],
+                SEPARATOR_BYTES[i],
+                "Separator byte {} mismatch. Expected: {}, Found: {}",
+                i,
+                SEPARATOR_BYTES[i],
+                bytes[1 + i]
+            );
+            i += 1;
+        }
+    }
+
+    #[cfg(feature = "sha2")]
+    #[test]
+    fn test_const_parse_okid_sha256() {
+        const TEST_OKID: &str =
+            "2ːb94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9";
+        const PARSED: Option<OkId> = const_parse_okid(TEST_OKID);
+        assert!(PARSED.is_some(), "Failed to parse SHA256 OkId");
+        if let Some(parsed) = PARSED {
+            assert_eq!(
+                parsed.to_string(),
+                TEST_OKID,
+                "Parsed OkId doesn't match original"
+            );
+        }
+    }
+
+    #[test]
+    fn test_const_parse_invalid_input() {
+        const INVALID_TYPE: &str = "xː2aae6c35c94fcfb415dbe95f408b9ce91ee846ed";
+        const INVALID_SEP: &str = "1-2aae6c35c94fcfb415dbe95f408b9ce91ee846ed";
+        const TOO_SHORT: &str = "1";
+
+        assert!(const_parse_okid(INVALID_TYPE).is_none());
+        assert!(const_parse_okid(INVALID_SEP).is_none());
+        assert!(const_parse_okid(TOO_SHORT).is_none());
+    }
+
+    #[cfg(feature = "sha1")]
+    #[test]
+    fn test_const_parse_okid_sha1() {
+        const TEST_OKID: &str = "1ː2aae6c35c94fcfb415dbe95f408b9ce91ee846ed";
+        const PARSED: Option<OkId> = const_parse_okid(TEST_OKID);
+        assert!(PARSED.is_some(), "Failed to parse SHA1 OkId");
+        if let Some(parsed) = PARSED {
+            assert_eq!(
+                parsed.to_string(),
+                TEST_OKID,
+                "Parsed OkId doesn't match original"
+            );
+        }
+    }
+
+    #[cfg(feature = "sha3")]
+    #[test]
+    fn test_const_parse_okid_sha3() {
+        const TEST_OKID: &str =
+            "3ː840006653e9ac9e95117a15c915caab81662918e925de9e004f774ff82d7079a40d4d27b1b372657c61d46d470304c88c788b3a4527ad074d1dccbee5dbaa99a";
+        const PARSED: Option<OkId> = const_parse_okid(TEST_OKID);
+        assert!(PARSED.is_some(), "Failed to parse SHA3 OkId");
+        if let Some(parsed) = PARSED {
+            assert_eq!(
+                parsed.to_string(),
+                TEST_OKID,
+                "Parsed OkId doesn't match original"
+            );
+        }
+    }
+
+    #[cfg(feature = "blake3")]
+    #[test]
+    fn test_const_parse_okid_blake3() {
+        const TEST_OKID: &str =
+            "bːd74981efa70a0c880b8d8c1985d075dbcbf679b99a5f9914e5aaf96b831a9e24";
+        const PARSED: Option<OkId> = const_parse_okid(TEST_OKID);
+        assert!(PARSED.is_some(), "Failed to parse Blake3 OkId");
+        if let Some(parsed) = PARSED {
+            assert_eq!(
+                parsed.to_string(),
+                TEST_OKID,
+                "Parsed OkId doesn't match original"
+            );
+        }
+    }
+
+    #[cfg(feature = "ulid")]
+    #[test]
+    fn test_const_parse_okid_ulid() {
+        const TEST_OKID: &str = "uː146907d25d66000035da136af2f988ca";
+        const PARSED: Option<OkId> = const_parse_okid(TEST_OKID);
+        assert!(PARSED.is_some(), "Failed to parse ULID OkId");
+        if let Some(parsed) = PARSED {
+            assert_eq!(
+                parsed.to_string(),
+                TEST_OKID,
+                "Parsed OkId doesn't match original"
+            );
+        }
+    }
+
+    #[cfg(feature = "uuid")]
+    #[test]
+    fn test_const_parse_okid_uuid() {
+        const TEST_OKID: &str = "iː73da51ba29654c53909fc283d33e39ba";
+        const PARSED: Option<OkId> = const_parse_okid(TEST_OKID);
+        assert!(PARSED.is_some(), "Failed to parse UUID OkId");
+        if let Some(parsed) = PARSED {
+            assert_eq!(
+                parsed.to_string(),
+                TEST_OKID,
+                "Parsed OkId doesn't match original"
+            );
+        }
     }
 }

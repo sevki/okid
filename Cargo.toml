@@ -27,12 +27,13 @@ uuid = { version = "1.10.0", optional = true, features = ["js", "v4"] }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 jetstream_wireformat = "8.0.4"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-jetstream_wireformat = { version = "8.0.4", no-default-features = true, features = [
+jetstream_wireformat = { version = "8.0.4", default-features = false, features = [
     "std",
 ] }
 
 [features]
 default = ["sha2", "sha3", "blake3", "uuid", "ulid", "openapi"]
+macro-diagnostics = []
 sha1 = ["dep:sha1"]
 sha2 = ["dep:sha2"]
 sha3 = ["dep:sha3"]
