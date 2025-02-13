@@ -7,8 +7,6 @@
 use std::{fmt::Display, hash::Hash, str::FromStr};
 
 use digest::OutputSizeUser;
-#[cfg(feature = "node")]
-use jetstream_wireformat::Data;
 
 use serde::{Deserialize, Serialize};
 
@@ -21,6 +19,28 @@ use utoipa::{
     openapi::{schema::SchemaType, SchemaFormat, Type as UType},
     PartialSchema,
 };
+
+impl From<OkId> for Vec<u64> {
+    fn from(value: OkId) -> Self {
+        let mut result = vec![value.hash_type as u64];
+        result.extend(match value.digest {
+            #[cfg(feature = "blake3")]
+            Digest::Blake3(blake3) => blake3.into(),
+            Digest::Fingerprint(fingerprint) => vec![fingerprint.0],
+            #[cfg(feature = "sha1")]
+            Digest::Sha1(sha1) => sha1.into(),
+            #[cfg(feature = "sha2")]
+            Digest::Sha256(sha256) => sha256.into(),
+            #[cfg(feature = "sha3")]
+            Digest::Sha512(sha512) => sha512.into(),
+            #[cfg(feature = "ulid")]
+            Digest::Ulid(ulid) => ulid.into(),
+            #[cfg(feature = "uuid")]
+            Digest::Uuid(uuid) => uuid.into(),
+        });
+        result
+    }
+}
 
 /// Separator character for the OkId string representation
 pub const SEPARATOR: char = 'ː';
@@ -38,12 +58,6 @@ pub mod macros;
 pub mod blake3;
 /// fingerprint module
 pub mod fingerprint;
-#[cfg(feature = "node")]
-/// node module
-pub mod node;
-#[cfg(feature = "git")]
-/// git module
-pub mod oid;
 #[cfg(feature = "sha1")]
 /// sha1 module
 pub mod sha1;
@@ -85,8 +99,6 @@ pub(crate) enum BinaryType {
     Uuid = 1 << 5,
     // Fingerprint
     Fingerprint = 1 << 6,
-    #[cfg(feature = "node")]
-    Node = 1 << 7,
 }
 
 impl From<char> for BinaryType {
@@ -105,8 +117,7 @@ impl From<char> for BinaryType {
             #[cfg(feature = "uuid")]
             'i' => Self::Uuid,
             'f' => Self::Fingerprint,
-            #[cfg(feature = "node")]
-            'n' => Self::Node,
+
             _ => Self::Unknown,
         }
     }
@@ -129,8 +140,6 @@ impl BinaryType {
             BinaryType::Uuid => 'i',
             BinaryType::Unknown => '0',
             BinaryType::Fingerprint => 'f',
-            #[cfg(feature = "node")]
-            BinaryType::Node => 'n',
         }
     }
 }
@@ -152,8 +161,6 @@ impl Display for BinaryType {
             BinaryType::Uuid => write!(f, "uuid"),
             BinaryType::Unknown => write!(f, "unknown"),
             BinaryType::Fingerprint => write!(f, "fingerprint"),
-            #[cfg(feature = "node")]
-            BinaryType::Node => write!(f, "node"),
         }
     }
 }
@@ -226,10 +233,6 @@ impl PartialEq for OkId {
             (Digest::Uuid(_), _) => false,
             (Digest::Fingerprint(a), Digest::Fingerprint(b)) => a == b,
             (Digest::Fingerprint(_), _) => false,
-            #[cfg(feature = "node")]
-            (Digest::Node(a), Digest::Node(b)) => a == b,
-            #[cfg(feature = "node")]
-            (Digest::Node(_), _) => false,
         }
     }
 }
@@ -263,8 +266,6 @@ impl Hash for OkId {
             #[cfg(feature = "uuid")]
             Digest::Uuid(d) => d.hash(state),
             Digest::Fingerprint(d) => d.hash(state),
-            #[cfg(feature = "node")]
-            Digest::Node(d) => d.hash(state),
         }
     }
 }
@@ -334,61 +335,40 @@ fn parse_okid(s: &str) -> Result<OkId, Error> {
     let rest = chars.collect::<String>();
     match hash_type {
         #[cfg(feature = "sha1")]
-        BinaryType::Sha1 => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Sha1(rest.parse()?),
-            })
-        }
+        BinaryType::Sha1 => Ok(OkId {
+            hash_type,
+            digest: Digest::Sha1(rest.parse()?),
+        }),
         #[cfg(feature = "sha2")]
-        BinaryType::Sha256 => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Sha256(rest.parse()?),
-            })
-        }
+        BinaryType::Sha256 => Ok(OkId {
+            hash_type,
+            digest: Digest::Sha256(rest.parse()?),
+        }),
         #[cfg(feature = "sha3")]
-        BinaryType::Sha3_512 => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Sha512(rest.parse()?),
-            })
-        }
+        BinaryType::Sha3_512 => Ok(OkId {
+            hash_type,
+            digest: Digest::Sha512(rest.parse()?),
+        }),
         #[cfg(feature = "blake3")]
-        BinaryType::Blake3 => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Blake3(rest.parse()?),
-            })
-        }
+        BinaryType::Blake3 => Ok(OkId {
+            hash_type,
+            digest: Digest::Blake3(rest.parse()?),
+        }),
         #[cfg(feature = "ulid")]
-        BinaryType::Ulid => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Ulid(rest.parse()?),
-            })
-        }
+        BinaryType::Ulid => Ok(OkId {
+            hash_type,
+            digest: Digest::Ulid(rest.parse()?),
+        }),
         #[cfg(feature = "uuid")]
-        BinaryType::Uuid => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Uuid(rest.parse()?),
-            })
-        }
+        BinaryType::Uuid => Ok(OkId {
+            hash_type,
+            digest: Digest::Uuid(rest.parse()?),
+        }),
         BinaryType::Unknown => todo!(),
-        BinaryType::Fingerprint => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Fingerprint(rest.parse()?),
-            })
-        }
-        #[cfg(feature = "node")]
-        BinaryType::Node => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Node(rest.parse()?),
-            })
-        }
+        BinaryType::Fingerprint => Ok(OkId {
+            hash_type,
+            digest: Digest::Fingerprint(rest.parse()?),
+        }),
     }
 }
 
@@ -408,8 +388,6 @@ enum Digest {
     #[cfg(feature = "uuid")]
     Uuid(crate::uuid::Uuid),
     Fingerprint(crate::fingerprint::Fingerprint),
-    #[cfg(feature = "node")]
-    Node(crate::node::Node),
 }
 
 impl Display for OkId {
@@ -430,8 +408,6 @@ impl Display for OkId {
             #[cfg(feature = "uuid")]
             Digest::Uuid(uuid) => uuid.fmt(f),
             Digest::Fingerprint(fingerprint) => fingerprint.fmt(f),
-            #[cfg(feature = "node")]
-            Digest::Node(node) => node.fmt(f),
         }
     }
 }
@@ -454,8 +430,6 @@ impl std::fmt::Debug for OkId {
             #[cfg(feature = "uuid")]
             Digest::Uuid(uuid) => std::fmt::Display::fmt(uuid, f),
             Digest::Fingerprint(fingerprint) => std::fmt::Display::fmt(fingerprint, f),
-            #[cfg(feature = "node")]
-            Digest::Node(node) => std::fmt::Display::fmt(node, f),
         }
     }
 }
@@ -506,8 +480,7 @@ impl jetstream_wireformat::WireFormat for OkId {
             #[cfg(feature = "uuid")]
             Digest::Uuid(_uuid) => 128 / 8,
             Digest::Fingerprint(_fingerprint) => 64 / 8,
-            #[cfg(feature = "node")]
-            Digest::Node(_node) => 6 ,
+
         }
     }
 
@@ -533,10 +506,6 @@ impl jetstream_wireformat::WireFormat for OkId {
             Digest::Fingerprint(fingerprint) => {
                 u64::encode(&fingerprint.0, writer)?;
             }
-            #[cfg(feature = "node")]
-            Digest::Node(node) => {
-                Data::encode(&Data(node.0.into()), writer)?;
-            }
         }
 
         Ok(())
@@ -545,12 +514,10 @@ impl jetstream_wireformat::WireFormat for OkId {
     fn decode<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
         let binary_type = u8::decode(reader)?;
         match BinaryType::from(binary_type as char) {
-            BinaryType::Unknown => {
-                Err(std::io::Error::new(
-                    std::io::ErrorKind::InvalidData,
-                    format!("Unknown binary type: {}", binary_type as char),
-                ))
-            }
+            BinaryType::Unknown => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!("Unknown binary type: {}", binary_type as char),
+            )),
             #[cfg(feature = "sha1")]
             BinaryType::Sha1 => {
                 let mut buf = [0; 20];
@@ -610,19 +577,6 @@ impl jetstream_wireformat::WireFormat for OkId {
                     digest: Digest::Fingerprint(crate::fingerprint::Fingerprint(data)),
                 })
             }
-            #[cfg(feature = "node")]
-            BinaryType::Node => {
-                let data = Data::decode(reader)?;
-                let data = data.get(0..6).unwrap();
-                let mut buf = [0; 6];
-                if data.len() == 6 {
-                    buf.copy_from_slice(data);
-                }
-                Ok(OkId {
-                    hash_type: BinaryType::Node,
-                    digest: Digest::Node(crate::node::Node(buf)),
-                })
-            }
         }
     }
 }
@@ -665,8 +619,6 @@ pub const fn const_parse_okid(s: &str) -> Option<OkId> {
         #[cfg(feature = "uuid")]
         'i' => BinaryType::Uuid,
         'f' => BinaryType::Fingerprint,
-        #[cfg(feature = "node")]
-        'n' => BinaryType::Node,
         _ => return None,
     };
 
@@ -691,12 +643,10 @@ pub const fn const_parse_okid(s: &str) -> Option<OkId> {
                 return None;
             }
             match const_parse_sha1_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Sha1(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Sha1(digest),
+                }),
                 None => None,
             }
         }
@@ -707,12 +657,10 @@ pub const fn const_parse_okid(s: &str) -> Option<OkId> {
                 return None;
             }
             match const_parse_sha256_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Sha256(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Sha256(digest),
+                }),
                 None => None,
             }
         }
@@ -723,12 +671,10 @@ pub const fn const_parse_okid(s: &str) -> Option<OkId> {
                 return None;
             }
             match const_parse_sha3_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Sha512(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Sha512(digest),
+                }),
                 None => None,
             }
         }
@@ -739,12 +685,10 @@ pub const fn const_parse_okid(s: &str) -> Option<OkId> {
                 return None;
             }
             match const_parse_blake3_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Blake3(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Blake3(digest),
+                }),
                 None => None,
             }
         }
@@ -755,12 +699,10 @@ pub const fn const_parse_okid(s: &str) -> Option<OkId> {
                 return None;
             }
             match const_parse_ulid_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Ulid(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Ulid(digest),
+                }),
                 None => None,
             }
         }
@@ -771,12 +713,10 @@ pub const fn const_parse_okid(s: &str) -> Option<OkId> {
                 return None;
             }
             match const_parse_uuid_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Uuid(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Uuid(digest),
+                }),
                 None => None,
             }
         }
@@ -1211,16 +1151,6 @@ mod okid_tests {
         let mut _reader = std::io::Cursor::new(byts);
 
         assert_eq!(file, new_file);
-    }
-
-    #[cfg(feature = "node")]
-    #[test]
-    fn node_display() {
-        use mac_address::MacAddressIterator;
-        let binary_id = OkId::from(
-            MacAddressIterator::new().unwrap_or_else(|_| panic!("No mac address found")),
-        );
-        assert_eq!(binary_id.to_string().len(), 15);
     }
 
     #[test]

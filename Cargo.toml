@@ -13,9 +13,7 @@ blake3 = { version = "1.5.4", optional = true }
 bytes = { version = "1.9.0", features = ["serde"] }
 digest = "0.10.7"
 enumflags2 = "0.7.10"
-git2 = { version = "0.20.0", optional = true, default-features = false }
 hex = { version = "0.4.3", features = ["serde"] }
-mac_address = { version = "1.1.7", optional = true }
 serde = { version = "1.0.215", features = ["derive"] }
 serde_json = "1.0.137"
 sha1 = { version = "0.10.6", optional = true }
@@ -42,9 +40,7 @@ blake3 = ["dep:blake3"]
 uuid = ["dep:uuid"]
 ulid = ["dep:ulid"]
 openapi = ["dep:utoipa"]
-git = ["dep:git2"]
 graphql = ["dep:async-graphql"]
-node = ["dep:mac_address"]
 
 [dev-dependencies]
 insta = { version = "1.40.0", features = ["yaml"] }
