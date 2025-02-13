@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/sevki/okid/compare/v0.7.0...v0.8.0) (2025-02-13)
+
+
+### Features
+
+* deprecate node, introduce IntoVecU64 ([68abf17](https://github.com/sevki/okid/commit/68abf17879fd1643f61d95a034693f06f3b05649))
+
 ## [0.7.0](https://github.com/sevki/okid/compare/v0.6.2...v0.7.0) (2025-02-12)
 
 
