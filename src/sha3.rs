@@ -49,3 +49,16 @@ impl FromStr for Sha512 {
         Ok(Sha512(hash))
     }
 }
+
+impl From<Sha512> for Vec<u64> {
+    fn from(value: Sha512) -> Self {
+        let data = value.0;
+        let mut buf = [0; 64];
+        buf.copy_from_slice(&data);
+        let mut out = [0; 8];
+        for i in 0..8 {
+            out[i] = u64::from_le_bytes(buf[i * 8..(i + 1) * 8].try_into().unwrap());
+        }
+        out.to_vec()
+    }
+}

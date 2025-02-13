@@ -50,3 +50,16 @@ impl TryFrom<OkId> for uuid::Uuid {
         }
     }
 }
+
+impl From<Uuid> for Vec<u64> {
+    fn from(value: Uuid) -> Self {
+        let data = value.0;
+        let mut buf = [0; 16];
+        buf.copy_from_slice(&data.to_be_bytes());
+        let mut out = [0; 8];
+        for i in 0..8 {
+            out[i] = u64::from_le_bytes(buf[i * 8..(i + 1) * 8].try_into().unwrap());
+        }
+        out.to_vec()
+    }
+}

@@ -42,3 +42,16 @@ impl std::str::FromStr for Blake3 {
         Ok(Blake3(hash))
     }
 }
+
+impl From<Blake3> for Vec<u64> {
+    fn from(value: Blake3) -> Self {
+        let data = value.0;
+        let mut buf = [0; 32];
+        buf.copy_from_slice(&data);
+        let mut out = [0; 8];
+        for i in 0..8 {
+            out[i] = u64::from_le_bytes(buf[i * 8..(i + 1) * 8].try_into().unwrap());
+        }
+        out.to_vec()
+    }
+}
