@@ -1,6 +1,7 @@
-use std::fmt::Display;
-
-use crate::OkId;
+use {
+    crate::{hex_to_byte, OkId},
+    std::fmt::Display,
+};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub(super) struct Uuid(pub(super) u128);
@@ -62,4 +63,22 @@ impl From<Uuid> for Vec<u64> {
         }
         out.to_vec()
     }
+}
+
+pub(crate) const fn parse_uuid_bytes(bytes: &[u8], start: usize) -> Option<crate::uuid::Uuid> {
+    let mut result: u128 = 0;
+    let mut i = 0;
+    while i < 32 {
+        let high = match hex_to_byte(bytes[start + i]) {
+            Some(b) => b,
+            None => return None,
+        };
+        let low = match hex_to_byte(bytes[start + i + 1]) {
+            Some(b) => b,
+            None => return None,
+        };
+        result = (result << 8) | (((high << 4) | low) as u128);
+        i += 2;
+    }
+    Some(crate::uuid::Uuid(result))
 }

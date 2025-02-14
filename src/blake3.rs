@@ -1,6 +1,7 @@
-use std::fmt::Display;
-
-use crate::{BinaryType, Digest, IntoOkId, OkId};
+use {
+    crate::{hex_to_byte, BinaryType, Digest, IntoOkId, OkId},
+    std::fmt::Display,
+};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(super) struct Blake3(pub(super) [u8; 32]);
@@ -54,4 +55,26 @@ impl From<Blake3> for Vec<u64> {
         }
         out.to_vec()
     }
+}
+
+pub(crate) const fn parse_blake3_bytes(
+    bytes: &[u8],
+    start: usize,
+) -> Option<crate::blake3::Blake3> {
+    let mut result = [0u8; 32];
+    let mut i = 0;
+    // Parse all 64 hex chars (32 bytes)
+    while i < 64 {
+        let high = match hex_to_byte(bytes[start + i]) {
+            Some(b) => b,
+            None => return None,
+        };
+        let low = match hex_to_byte(bytes[start + i + 1]) {
+            Some(b) => b,
+            None => return None,
+        };
+        result[i / 2] = (high << 4) | low;
+        i += 2;
+    }
+    Some(crate::blake3::Blake3(result))
 }
