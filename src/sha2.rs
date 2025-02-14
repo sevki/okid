@@ -1,9 +1,8 @@
 use {
+    crate::{hex_to_byte, OkId},
     sha2::Digest,
     std::{fmt::Display, str::FromStr},
 };
-
-use crate::OkId;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub(super) struct Sha256(pub(crate) [u8; 32]);
@@ -56,4 +55,22 @@ impl From<Sha256> for Vec<u64> {
         }
         out.to_vec()
     }
+}
+
+pub(crate) const fn parse_sha256_bytes(bytes: &[u8], start: usize) -> Option<crate::sha2::Sha256> {
+    let mut result = [0u8; 32];
+    let mut i = 0;
+    while i < 64 {
+        let high = match hex_to_byte(bytes[start + i]) {
+            Some(b) => b,
+            None => return None,
+        };
+        let low = match hex_to_byte(bytes[start + i + 1]) {
+            Some(b) => b,
+            None => return None,
+        };
+        result[i / 2] = (high << 4) | low;
+        i += 2;
+    }
+    Some(crate::sha2::Sha256(result))
 }
