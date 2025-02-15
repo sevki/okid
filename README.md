@@ -1,6 +1,8 @@
 <img src="https://assets.ok.software/okid.png" align="right" width="200">
 
 # okid
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsevki%2Fokid.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsevki%2Fokid?ref=badge_shield)
+
 
 `okid` is a library for generating double clickable representations of various types of data,
 such as `sha1` hashes, `uuid`s and more.
@@ -40,3 +42,6 @@ use okid::{okid, OkId};
 #[cfg(feature = "sha2")]
 const HELLO_WORLD_SHA256: OkId = okid!("2ːb94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
 ```
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsevki%2Fokid.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsevki%2Fokid?ref=badge_large)
