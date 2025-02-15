@@ -8,7 +8,7 @@ license = "BSD-3-Clause"
 keywords = ["double-click", "double-clickable", "id", "hash"]
 
 [dependencies]
-async-graphql = { version = "7.0.11", optional = true }
+async-graphql = { version = "7.0.15", optional = true }
 blake3 = { version = "1.5.4", optional = true }
 bytes = { version = "1.9.0", features = ["serde"] }
 digest = "0.10.7"
