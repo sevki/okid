@@ -1,9 +1,10 @@
-use std::{fmt::Display, str::FromStr};
-
-use digest::core_api::CoreWrapper;
-use sha3::Digest;
-
-use super::OkId;
+use {
+    super::OkId,
+    crate::hex_to_byte,
+    digest::core_api::CoreWrapper,
+    sha3::Digest,
+    std::{fmt::Display, str::FromStr},
+};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub(super) struct Sha512(pub(super) [u8; 64]);
@@ -49,4 +50,36 @@ impl FromStr for Sha512 {
         hash.copy_from_slice(&buf);
         Ok(Sha512(hash))
     }
+}
+
+impl From<Sha512> for Vec<u64> {
+    fn from(value: Sha512) -> Self {
+        let data = value.0;
+        let mut buf = [0; 64];
+        buf.copy_from_slice(&data);
+        let mut out = [0; 8];
+        for i in 0..8 {
+            out[i] = u64::from_le_bytes(buf[i * 8..(i + 1) * 8].try_into().unwrap());
+        }
+        out.to_vec()
+    }
+}
+
+pub(crate) const fn parse_sha3_bytes(bytes: &[u8], start: usize) -> Option<crate::sha3::Sha512> {
+    let mut result = [0u8; 64];
+    let mut i = 0;
+    // Parse all 128 hex chars (64 bytes)
+    while i < 128 {
+        let high = match hex_to_byte(bytes[start + i]) {
+            Some(b) => b,
+            None => return None,
+        };
+        let low = match hex_to_byte(bytes[start + i + 1]) {
+            Some(b) => b,
+            None => return None,
+        };
+        result[i / 2] = (high << 4) | low;
+        i += 2;
+    }
+    Some(crate::sha3::Sha512(result))
 }

@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.9.0](https://github.com/sevki/okid/compare/v0.8.0...v0.9.0) (2025-02-14)
+
+
+### Features
+
+* add ts ([35ec4e4](https://github.com/sevki/okid/commit/35ec4e4196181c16397de5ad62d550e2949c9881))
+
+## [0.8.0](https://github.com/sevki/okid/compare/v0.7.0...v0.8.0) (2025-02-13)
+
+
+### Features
+
+* deprecate node, introduce IntoVecU64 ([68abf17](https://github.com/sevki/okid/commit/68abf17879fd1643f61d95a034693f06f3b05649))
+
+## [0.7.0](https://github.com/sevki/okid/compare/v0.6.2...v0.7.0) (2025-02-12)
+
+
+### Features
+
+* okid macro ([ec736e6](https://github.com/sevki/okid/commit/ec736e68c81810c689fa9be0acd2701f10bf0fae))
+
 ## [0.6.2](https://github.com/sevki/okid/compare/v0.6.1...v0.6.2) (2025-02-02)
 
 

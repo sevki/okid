@@ -1,8 +1,9 @@
-use std::{fmt::Display, str::FromStr};
-
-use digest::core_api::CoreWrapper;
-
-use super::{BinaryType, Digest, IntoOkId, OkId};
+use {
+    super::{BinaryType, Digest, IntoOkId, OkId},
+    crate::hex_to_byte,
+    digest::core_api::CoreWrapper,
+    std::{fmt::Display, str::FromStr},
+};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub(super) struct Sha1(pub(crate) [u8; 20]);
@@ -50,4 +51,34 @@ impl FromStr for Sha1 {
         hash.copy_from_slice(&buf[..]);
         Ok(Sha1(hash))
     }
+}
+
+impl From<Sha1> for Vec<u64> {
+    fn from(value: Sha1) -> Self {
+        let data = value.0;
+        let mut buf = [0; 20];
+        buf.copy_from_slice(&data);
+        let mut out = [0; 8];
+        for i in 0..8 {
+            out[i] = u64::from_le_bytes(buf[i * 8..(i + 1) * 8].try_into().unwrap());
+        }
+        out.to_vec()
+    }
+}
+pub(crate) const fn parse_sha1_bytes(bytes: &[u8], start: usize) -> Option<crate::sha1::Sha1> {
+    let mut result = [0u8; 20];
+    let mut i = 0;
+    while i < 40 {
+        let high = match hex_to_byte(bytes[start + i]) {
+            Some(b) => b,
+            None => return None,
+        };
+        let low = match hex_to_byte(bytes[start + i + 1]) {
+            Some(b) => b,
+            None => return None,
+        };
+        result[i / 2] = (high << 4) | low;
+        i += 2;
+    }
+    Some(crate::sha1::Sha1(result))
 }
