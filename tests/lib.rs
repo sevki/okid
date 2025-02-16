@@ -429,3 +429,15 @@ fn test_const_parse_okid_fingerprint() {
         );
     }
 }
+
+#[cfg(feature = "sha2")]
+#[test]
+fn test_as_bytes() {
+    const TEST_OKID: &str = "2ːb94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9";
+    const PARSED: Option<OkId> = const_parse_okid(TEST_OKID);
+    if PARSED.is_none() {
+        panic!("Failed to parse OkId");
+    }
+    let parsed = PARSED.unwrap();
+    let _binary_id_bytes: &[u8; 33] = parsed.as_bytes();
+}

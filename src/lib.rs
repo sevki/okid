@@ -474,6 +474,101 @@ impl std::convert::AsRef<[u8]> for OkId {
         unsafe { std::slice::from_raw_parts(bytes.as_ptr(), bytes.len()) }
     }
 }
+impl OkId {
+    /// Convert the OkId into a byte slice
+    pub const fn as_bytes<const SIZE: usize>(&self) -> &[u8; SIZE] {
+        // Create a fixed buffer to store the bytes
+        let bytes = match self.digest {
+            #[cfg(feature = "sha1")]
+            Digest::Sha1(sha1) => {
+                let mut buf = [0u8; SIZE];
+                buf[0] = self.hash_type as u8;
+                // Copy the SHA1 bytes into the buffer
+                let sha1_bytes = sha1.0;
+                let mut i = 0;
+                while i < sha1_bytes.len() {
+                    buf[i + 1] = sha1_bytes[i];
+                    i += 1;
+                }
+                buf
+            }
+            #[cfg(feature = "sha2")]
+            Digest::Sha256(sha256) => {
+                let mut buf = [0u8; SIZE];
+                buf[0] = self.hash_type as u8;
+                let sha256_bytes = sha256.0;
+                let mut i = 0;
+                while i < sha256_bytes.len() {
+                    buf[i + 1] = sha256_bytes[i];
+                    i += 1;
+                }
+                buf
+            }
+            #[cfg(feature = "sha3")]
+            Digest::Sha512(sha512) => {
+                let mut buf = [0u8; SIZE];
+                buf[0] = self.hash_type as u8;
+                let sha512_bytes = sha512.0;
+                let mut i = 0;
+                while i < sha512_bytes.len() {
+                    buf[i + 1] = sha512_bytes[i];
+                    i += 1;
+                }
+                buf
+            }
+            #[cfg(feature = "blake3")]
+            Digest::Blake3(blake3) => {
+                let mut buf = [0u8; SIZE];
+                buf[0] = self.hash_type as u8;
+                let blake3_bytes = blake3.0;
+                let mut i = 0;
+                while i < blake3_bytes.len() {
+                    buf[i + 1] = blake3_bytes[i];
+                    i += 1;
+                }
+                buf
+            }
+            #[cfg(feature = "ulid")]
+            Digest::Ulid(ulid) => {
+                let mut buf = [0u8; SIZE];
+                buf[0] = self.hash_type as u8;
+                let ulid_bytes = ulid.0.to_le_bytes();
+                let mut i = 0;
+                while i < ulid_bytes.len() {
+                    buf[i + 1] = ulid_bytes[i];
+                    i += 1;
+                }
+                buf
+            }
+            #[cfg(feature = "uuid")]
+            Digest::Uuid(uuid) => {
+                let mut buf = [0u8; SIZE];
+                buf[0] = self.hash_type as u8;
+                let uuid_bytes = uuid.0.to_le_bytes();
+                let mut i = 0;
+                while i < uuid_bytes.len() {
+                    buf[i + 1] = uuid_bytes[i];
+                    i += 1;
+                }
+                buf
+            }
+            Digest::Fingerprint(fingerprint) => {
+                let mut buf = [0u8; SIZE];
+                buf[0] = self.hash_type as u8;
+                let fingerprint_bytes = fingerprint.0.to_le_bytes();
+                let mut i = 0;
+                while i < fingerprint_bytes.len() {
+                    buf[i + 1] = fingerprint_bytes[i];
+                    i += 1;
+                }
+                buf
+            }
+        };
+
+        // SAFETY: We've initialized the entire buffer with valid bytes
+        unsafe { &*(bytes.as_ptr() as *const [u8; SIZE]) }
+    }
+}
 
 /// Create a path-safe string from an OkId
 pub fn pathsafe(id: OkId) -> String {
