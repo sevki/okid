@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/sevki/okid/compare/v0.10.0...v0.10.1) (2025-02-16)
+
+
+### Bug Fixes
+
+* into_bytes ([aac66c0](https://github.com/sevki/okid/commit/aac66c0ab2fa921e658c24dca0b2e2cb048c0e70))
+
 ## [0.10.0](https://github.com/sevki/okid/compare/v0.9.1...v0.10.0) (2025-02-16)
 
 
