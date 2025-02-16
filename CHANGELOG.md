@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/sevki/okid/compare/v0.9.1...v0.10.0) (2025-02-16)
+
+
+### Features
+
+* const as_bytes for okid ([c192c50](https://github.com/sevki/okid/commit/c192c508184b2bd4c49bbd4a7b362dc1f68682f7))
+
 ## [0.9.1](https://github.com/sevki/okid/compare/v0.9.0...v0.9.1) (2025-02-16)
 
 
