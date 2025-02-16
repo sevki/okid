@@ -63,9 +63,7 @@ fn display_hello_world_blake3() {
 fn display_hello_world_ulid() {
     let ulid = ulid::Ulid::from_parts(0x0192146907d25d66, 0x35da136af2f988ca);
     let binary_id = OkId::from(ulid);
-    insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
-        uː146907d25d66000035da136af2f988ca
-        "###);
+    insta::assert_yaml_snapshot!(binary_id.to_string(), @"uːca88f9f26a13da350000665dd2076914");
 }
 
 #[cfg(feature = "uuid")]
@@ -73,9 +71,7 @@ fn display_hello_world_ulid() {
 fn display_hello_world_uuid() {
     let uuid = uuid::Uuid::from_u128(0x73da51ba29654c53909fc283d33e39ba);
     let binary_id = OkId::from(uuid);
-    insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
-        iː73da51ba29654c53909fc283d33e39ba
-        "###);
+    insta::assert_yaml_snapshot!(binary_id.to_string(), @"iːba393ed383c29f90534c6529ba51da73");
 }
 
 #[cfg(feature = "sha1")]
@@ -408,9 +404,23 @@ fn test_const_parse_okid_ulid() {
 #[cfg(feature = "uuid")]
 #[test]
 fn test_const_parse_okid_uuid() {
-    const TEST_OKID: &str = "iː73da51ba29654c53909fc283d33e39ba";
+    const TEST_OKID: &str = "iːba393ed383c29f90534c6529ba51da73";
     const PARSED: Option<OkId> = const_parse_okid(TEST_OKID);
     assert!(PARSED.is_some(), "Failed to parse UUID OkId");
+    if let Some(parsed) = PARSED {
+        assert_eq!(
+            parsed.to_string(),
+            TEST_OKID,
+            "Parsed OkId doesn't match original"
+        );
+    }
+}
+
+#[test]
+fn test_const_parse_okid_fingerprint() {
+    const TEST_OKID: &str = "fː73da51ba29654c53";
+    const PARSED: Option<OkId> = const_parse_okid(TEST_OKID);
+    assert!(PARSED.is_some(), "Failed to parse Fingerprint OkId");
     if let Some(parsed) = PARSED {
         assert_eq!(
             parsed.to_string(),
