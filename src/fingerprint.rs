@@ -1,5 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
+use crate::hex_to_byte;
+
 use super::{BinaryType, Digest, IntoOkId, OkId};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -18,7 +20,7 @@ impl IntoOkId for u64 {}
 
 impl Display for Fingerprint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let buf = hex::encode(self.0.to_be_bytes());
+        let buf = hex::encode(self.0.to_le_bytes());
         f.write_str(&buf)?;
         Ok(())
     }
@@ -31,7 +33,7 @@ impl FromStr for Fingerprint {
         let buf = hex::decode(s)?;
         let mut hash: [u8; 8] = [0; 8];
         hash.copy_from_slice(&buf);
-        Ok(Fingerprint(u64::from_be_bytes(hash)))
+        Ok(Fingerprint(u64::from_le_bytes(hash)))
     }
 }
 
@@ -44,4 +46,24 @@ impl TryFrom<OkId> for u64 {
             _ => Err(super::Error::InvalidHashType),
         }
     }
+}
+
+pub(crate) const fn parse_fingerprint_bytes(buf: &[u8], start: usize) -> Option<Fingerprint> {
+    let mut result = [0u8; 8];
+    let mut i = 0;
+    while i < 16 {
+        let high = match hex_to_byte(buf[start + i]) {
+            Some(b) => b,
+            None => return None,
+        };
+        let low = match hex_to_byte(buf[start + i + 1]) {
+            Some(b) => b,
+            None => return None,
+        };
+        result[i / 2] = (high << 4) | low;
+        i += 2;
+    }
+    Some(Fingerprint(
+        zerocopy::little_endian::U64::from_bytes(result).get(),
+    ))
 }

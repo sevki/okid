@@ -1,5 +1,5 @@
 use {
-    crate::{hex_to_byte, OkId},
+    crate::{u128::parse_u128, OkId},
     std::fmt::Display,
 };
 
@@ -17,7 +17,7 @@ impl From<ulid::Ulid> for OkId {
 
 impl Display for Ulid {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let buf = hex::encode(self.0.to_be_bytes());
+        let buf = hex::encode(self.0.to_le_bytes());
         write!(f, "{}", buf)
     }
 }
@@ -31,7 +31,7 @@ impl std::str::FromStr for Ulid {
         let buf = hex::decode(s)?;
         let mut hash: [u8; 16] = [0; 16];
         hash.copy_from_slice(&buf);
-        Ok(Ulid(u128::from_be_bytes(hash)))
+        Ok(Ulid(u128::from_le_bytes(hash)))
     }
 }
 
@@ -56,7 +56,7 @@ impl From<Ulid> for Vec<u64> {
     fn from(value: Ulid) -> Self {
         let data = value.0;
         let mut buf = [0; 16];
-        buf.copy_from_slice(&data.to_be_bytes());
+        buf.copy_from_slice(&data.to_le_bytes());
         let mut out = [0; 8];
         for i in 0..8 {
             out[i] = u64::from_le_bytes(buf[i * 8..(i + 1) * 8].try_into().unwrap());
@@ -66,19 +66,9 @@ impl From<Ulid> for Vec<u64> {
 }
 
 pub(crate) const fn parse_ulid_bytes(bytes: &[u8], start: usize) -> Option<crate::ulid::Ulid> {
-    let mut result: u128 = 0;
-    let mut i = 0;
-    while i < 32 {
-        let high = match hex_to_byte(bytes[start + i]) {
-            Some(b) => b,
-            None => return None,
-        };
-        let low = match hex_to_byte(bytes[start + i + 1]) {
-            Some(b) => b,
-            None => return None,
-        };
-        result = (result << 8) | (((high << 4) | low) as u128);
-        i += 2;
+    if let Some(num) = parse_u128(bytes, start) {
+        Some(Ulid(num))
+    } else {
+        None
     }
-    Some(crate::ulid::Ulid(result))
 }

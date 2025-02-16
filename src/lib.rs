@@ -49,6 +49,7 @@ pub const SEPARATOR_BYTES: [u8; 2] = [203, 144];
 /// Separator bytes length for the OkId string representation
 pub const SEPARATOR_BYTES_LEN: usize = 2;
 
+mod u128;
 mod wireformat;
 
 #[doc(hidden)]
@@ -600,6 +601,19 @@ pub const fn const_parse_okid(s: &str) -> Option<OkId> {
                 Some(digest) => Some(OkId {
                     hash_type,
                     digest: Digest::Uuid(digest),
+                }),
+                None => None,
+            }
+        }
+        BinaryType::Fingerprint => {
+            if s.len() != content_start + 16 {
+                // type + separator + 16 hex chars
+                return None;
+            }
+            match fingerprint::parse_fingerprint_bytes(bytes, content_start) {
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Fingerprint(digest),
                 }),
                 None => None,
             }
