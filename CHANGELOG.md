@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/sevki/okid/compare/v0.9.0...v0.9.1) (2025-02-16)
+
+
+### Bug Fixes
+
+* all nums are encoded little endian ([a6d55be](https://github.com/sevki/okid/commit/a6d55be04f7f869259750074f170a5ec240e53e7))
+
 ## [0.9.0](https://github.com/sevki/okid/compare/v0.8.0...v0.9.0) (2025-02-14)
 
 
