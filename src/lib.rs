@@ -476,6 +476,78 @@ impl std::convert::AsRef<[u8]> for OkId {
 }
 impl OkId {
     /// Convert the OkId into a byte slice
+    pub const fn into_bytes<const SIZE: usize>(&self) -> [u8; SIZE] {
+        // Create a fixed buffer to store the bytes
+        let mut bytes = [0u8; SIZE];
+        bytes[0] = self.hash_type as u8;
+        // Copy the SHA1 bytes into the buffer
+        match self.digest {
+            #[cfg(feature = "sha1")]
+            Digest::Sha1(sha1) => {
+                let sha1_bytes = sha1.0;
+                let mut i = 0;
+                while i < sha1_bytes.len() {
+                    bytes[i + 1] = sha1_bytes[i];
+                    i += 1;
+                }
+            }
+            #[cfg(feature = "sha2")]
+            Digest::Sha256(sha256) => {
+                let sha256_bytes = sha256.0;
+                let mut i = 0;
+                while i < sha256_bytes.len() {
+                    bytes[i + 1] = sha256_bytes[i];
+                    i += 1;
+                }
+            }
+            #[cfg(feature = "sha3")]
+            Digest::Sha512(sha512) => {
+                let sha512_bytes = sha512.0;
+                let mut i = 0;
+                while i < sha512_bytes.len() {
+                    bytes[i + 1] = sha512_bytes[i];
+                    i += 1;
+                }
+            }
+            #[cfg(feature = "blake3")]
+            Digest::Blake3(blake3) => {
+                let blake3_bytes = blake3.0;
+                let mut i = 0;
+                while i < blake3_bytes.len() {
+                    bytes[i + 1] = blake3_bytes[i];
+                    i += 1;
+                }
+            }
+            #[cfg(feature = "ulid")]
+            Digest::Ulid(ulid) => {
+                let ulid_bytes = ulid.0.to_le_bytes();
+                let mut i = 0;
+                while i < ulid_bytes.len() {
+                    bytes[i + 1] = ulid_bytes[i];
+                    i += 1;
+                }
+            }
+            #[cfg(feature = "uuid")]
+            Digest::Uuid(uuid) => {
+                let uuid_bytes = uuid.0.to_le_bytes();
+                let mut i = 0;
+                while i < uuid_bytes.len() {
+                    bytes[i + 1] = uuid_bytes[i];
+                    i += 1;
+                }
+            }
+            Digest::Fingerprint(fingerprint) => {
+                let fingerprint_bytes = fingerprint.0.to_le_bytes();
+                let mut i = 0;
+                while i < fingerprint_bytes.len() {
+                    bytes[i + 1] = fingerprint_bytes[i];
+                    i += 1;
+                }
+            }
+        }
+        bytes
+    }
+    /// Convert the OkId into a byte slice
     pub const fn as_bytes<const SIZE: usize>(&self) -> &[u8; SIZE] {
         // Create a fixed buffer to store the bytes
         let bytes = match self.digest {
