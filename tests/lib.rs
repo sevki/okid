@@ -253,7 +253,12 @@ fn serde_hello_world_sha1() {
     let serialized = serde_json::to_string_pretty(&binary_id).unwrap();
     let deserialized: OkId = serde_json::from_str(&serialized).unwrap();
     assert_eq!(binary_id.to_string(), deserialized.to_string(),);
-    assert_snapshot!(serialized, @r###""1ː2aae6c35c94fcfb415dbe95f408b9ce91ee846ed""###);
+    assert_snapshot!(serialized, @r###"
+    {
+      "hash_type": "sha1",
+      "digest": "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"
+    }
+    "###);
 }
 
 #[cfg(feature = "sha2")]
@@ -267,7 +272,12 @@ fn serde_hello_world_sha256() {
     let serialized = serde_json::to_string_pretty(&binary_id).unwrap();
     let deserialized: OkId = serde_json::from_str(&serialized).unwrap();
     assert_eq!(binary_id.to_string(), deserialized.to_string(),);
-    assert_snapshot!(serialized, @r###""2ːb94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9""###);
+    assert_snapshot!(serialized, @r###"
+    {
+      "hash_type": "sha256",
+      "digest": "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
+    }
+    "###);
 }
 
 #[derive(JetStreamWireFormat, Debug, Eq, PartialEq)]
@@ -440,4 +450,19 @@ fn test_as_bytes() {
     }
     let parsed = PARSED.unwrap();
     let _binary_id_bytes: &[u8; 33] = parsed.as_bytes();
+}
+
+#[cfg(feature = "sha2")]
+#[test]
+fn test_json_serialization_works() {
+    const TEST_OKID: &str = "2ːb94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9";
+    const PARSED: Option<OkId> = const_parse_okid(TEST_OKID);
+    if PARSED.is_none() {
+        panic!("Failed to parse OkId");
+    }
+    let parsed = PARSED.unwrap();
+    let serialized = serde_json::to_string(&parsed).unwrap();
+    dbg!(&serialized);
+    let deserialized: OkId = serde_json::from_str(&serialized).unwrap();
+    assert_eq!(parsed.to_string(), deserialized.to_string(),);
 }
