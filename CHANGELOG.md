@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.11.0](https://github.com/sevki/okid/compare/v0.10.1...v0.11.0) (2025-02-17)
+
+
+### Features
+
+* swift bindings ([bc981fe](https://github.com/sevki/okid/commit/bc981fe946f7450430f4f2ee7127cf88fa5d5863))
+
+
+### Bug Fixes
+
+* swift-tools version ([4f8af46](https://github.com/sevki/okid/commit/4f8af468b96957e4e274c86a6444b3abe8b25e3c))
+
 ## [0.10.1](https://github.com/sevki/okid/compare/v0.10.0...v0.10.1) (2025-02-16)
 
 
