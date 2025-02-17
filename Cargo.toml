@@ -1,6 +1,6 @@
 [package]
 name = "okid"
-version = "0.10.1"
+version = "0.11.0"
 edition = "2021"
 readme = "README.md"
 description = "A library for generating double clickable ids"
