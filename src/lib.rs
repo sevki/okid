@@ -351,54 +351,40 @@ fn parse_okid(s: &str) -> Result<OkId, Error> {
     let rest = chars.collect::<String>();
     match hash_type {
         #[cfg(feature = "sha1")]
-        BinaryType::Sha1 => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Sha1(rest.parse()?),
-            })
-        }
+        BinaryType::Sha1 => Ok(OkId {
+            hash_type,
+            digest: Digest::Sha1(rest.parse()?),
+        }),
         #[cfg(feature = "sha2")]
-        BinaryType::Sha256 => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Sha256(rest.parse()?),
-            })
-        }
+        BinaryType::Sha256 => Ok(OkId {
+            hash_type,
+            digest: Digest::Sha256(rest.parse()?),
+        }),
         #[cfg(feature = "sha3")]
-        BinaryType::Sha3_512 => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Sha512(rest.parse()?),
-            })
-        }
+        BinaryType::Sha3_512 => Ok(OkId {
+            hash_type,
+            digest: Digest::Sha512(rest.parse()?),
+        }),
         #[cfg(feature = "blake3")]
-        BinaryType::Blake3 => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Blake3(rest.parse()?),
-            })
-        }
+        BinaryType::Blake3 => Ok(OkId {
+            hash_type,
+            digest: Digest::Blake3(rest.parse()?),
+        }),
         #[cfg(feature = "ulid")]
-        BinaryType::Ulid => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Ulid(rest.parse()?),
-            })
-        }
+        BinaryType::Ulid => Ok(OkId {
+            hash_type,
+            digest: Digest::Ulid(rest.parse()?),
+        }),
         #[cfg(feature = "uuid")]
-        BinaryType::Uuid => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Uuid(rest.parse()?),
-            })
-        }
+        BinaryType::Uuid => Ok(OkId {
+            hash_type,
+            digest: Digest::Uuid(rest.parse()?),
+        }),
         BinaryType::Unknown => todo!(),
-        BinaryType::Fingerprint => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Fingerprint(rest.parse()?),
-            })
-        }
+        BinaryType::Fingerprint => Ok(OkId {
+            hash_type,
+            digest: Digest::Fingerprint(rest.parse()?),
+        }),
     }
 }
 
@@ -505,7 +491,23 @@ impl OkId {
     pub const fn into_bytes<const SIZE: usize>(&self) -> [u8; SIZE] {
         // Create a fixed buffer to store the bytes
         let mut bytes = [0u8; SIZE];
-        bytes[0] = self.hash_type as u8;
+        bytes[0] = match self.hash_type {
+            BinaryType::Unknown => b'0',
+            #[cfg(feature = "sha1")]
+            BinaryType::Sha1 => b'1',
+            #[cfg(feature = "sha2")]
+            BinaryType::Sha256 => b'2',
+            #[cfg(feature = "sha3")]
+            BinaryType::Sha3_512 => b'3',
+            #[cfg(feature = "blake3")]
+            BinaryType::Blake3 => b'b',
+            #[cfg(feature = "ulid")]
+            BinaryType::Ulid => b'u',
+            #[cfg(feature = "uuid")]
+            BinaryType::Uuid => b'i',
+
+            BinaryType::Fingerprint => b'f',
+        };
         // Copy the SHA1 bytes into the buffer
         match self.digest {
             #[cfg(feature = "sha1")]
@@ -575,96 +577,8 @@ impl OkId {
     }
     /// Convert the OkId into a byte slice
     pub const fn as_bytes<const SIZE: usize>(&self) -> &[u8; SIZE] {
-        // Create a fixed buffer to store the bytes
-        let bytes = match self.digest {
-            #[cfg(feature = "sha1")]
-            Digest::Sha1(sha1) => {
-                let mut buf = [0u8; SIZE];
-                buf[0] = self.hash_type as u8;
-                // Copy the SHA1 bytes into the buffer
-                let sha1_bytes = sha1.0;
-                let mut i = 0;
-                while i < sha1_bytes.len() {
-                    buf[i + 1] = sha1_bytes[i];
-                    i += 1;
-                }
-                buf
-            }
-            #[cfg(feature = "sha2")]
-            Digest::Sha256(sha256) => {
-                let mut buf = [0u8; SIZE];
-                buf[0] = self.hash_type as u8;
-                let sha256_bytes = sha256.0;
-                let mut i = 0;
-                while i < sha256_bytes.len() {
-                    buf[i + 1] = sha256_bytes[i];
-                    i += 1;
-                }
-                buf
-            }
-            #[cfg(feature = "sha3")]
-            Digest::Sha512(sha512) => {
-                let mut buf = [0u8; SIZE];
-                buf[0] = self.hash_type as u8;
-                let sha512_bytes = sha512.0;
-                let mut i = 0;
-                while i < sha512_bytes.len() {
-                    buf[i + 1] = sha512_bytes[i];
-                    i += 1;
-                }
-                buf
-            }
-            #[cfg(feature = "blake3")]
-            Digest::Blake3(blake3) => {
-                let mut buf = [0u8; SIZE];
-                buf[0] = self.hash_type as u8;
-                let blake3_bytes = blake3.0;
-                let mut i = 0;
-                while i < blake3_bytes.len() {
-                    buf[i + 1] = blake3_bytes[i];
-                    i += 1;
-                }
-                buf
-            }
-            #[cfg(feature = "ulid")]
-            Digest::Ulid(ulid) => {
-                let mut buf = [0u8; SIZE];
-                buf[0] = self.hash_type as u8;
-                let ulid_bytes = ulid.0.to_le_bytes();
-                let mut i = 0;
-                while i < ulid_bytes.len() {
-                    buf[i + 1] = ulid_bytes[i];
-                    i += 1;
-                }
-                buf
-            }
-            #[cfg(feature = "uuid")]
-            Digest::Uuid(uuid) => {
-                let mut buf = [0u8; SIZE];
-                buf[0] = self.hash_type as u8;
-                let uuid_bytes = uuid.0.to_le_bytes();
-                let mut i = 0;
-                while i < uuid_bytes.len() {
-                    buf[i + 1] = uuid_bytes[i];
-                    i += 1;
-                }
-                buf
-            }
-            Digest::Fingerprint(fingerprint) => {
-                let mut buf = [0u8; SIZE];
-                buf[0] = self.hash_type as u8;
-                let fingerprint_bytes = fingerprint.0.to_le_bytes();
-                let mut i = 0;
-                while i < fingerprint_bytes.len() {
-                    buf[i + 1] = fingerprint_bytes[i];
-                    i += 1;
-                }
-                buf
-            }
-        };
-
         // SAFETY: We've initialized the entire buffer with valid bytes
-        unsafe { &*(bytes.as_ptr() as *const [u8; SIZE]) }
+        unsafe { &*(&self.into_bytes() as *const [u8; SIZE]) }
     }
 }
 
@@ -682,21 +596,25 @@ pub const fn const_parse_okid(s: &str) -> Option<OkId> {
 
     let bytes = s.as_bytes();
 
+    parse_okid_bytes(bytes)
+}
+
+const fn parse_okid_bytes(bytes: &[u8]) -> Option<OkId> {
     // Get hash type
-    let hash_type = match bytes[0] as char {
+    let hash_type = match bytes[0] {
         #[cfg(feature = "sha1")]
-        '1' => BinaryType::Sha1,
+        b'1' => BinaryType::Sha1,
         #[cfg(feature = "sha2")]
-        '2' => BinaryType::Sha256,
+        b'2' => BinaryType::Sha256,
         #[cfg(feature = "sha3")]
-        '3' => BinaryType::Sha3_512,
+        b'3' => BinaryType::Sha3_512,
         #[cfg(feature = "blake3")]
-        'b' => BinaryType::Blake3,
+        b'b' => BinaryType::Blake3,
         #[cfg(feature = "ulid")]
-        'u' => BinaryType::Ulid,
+        b'u' => BinaryType::Ulid,
         #[cfg(feature = "uuid")]
-        'i' => BinaryType::Uuid,
-        'f' => BinaryType::Fingerprint,
+        b'i' => BinaryType::Uuid,
+        b'f' => BinaryType::Fingerprint,
         _ => return None,
     };
 
@@ -716,112 +634,98 @@ pub const fn const_parse_okid(s: &str) -> Option<OkId> {
     match hash_type {
         #[cfg(feature = "sha1")]
         BinaryType::Sha1 => {
-            if s.len() != content_start + 40 {
+            if bytes.len() != content_start + 40 {
                 // type + separator + 40 hex chars
                 return None;
             }
             match sha1::parse_sha1_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Sha1(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Sha1(digest),
+                }),
                 None => None,
             }
         }
         #[cfg(feature = "sha2")]
         BinaryType::Sha256 => {
-            if s.len() != content_start + 64 {
+            if bytes.len() != content_start + 64 {
                 // type + separator + 64 hex chars
                 return None;
             }
             match sha2::parse_sha256_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Sha256(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Sha256(digest),
+                }),
                 None => None,
             }
         }
         #[cfg(feature = "sha3")]
         BinaryType::Sha3_512 => {
-            if s.len() != content_start + 128 {
+            if bytes.len() != content_start + 128 {
                 // type + separator + 128 hex chars for SHA3-512
                 return None;
             }
             match sha3::parse_sha3_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Sha512(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Sha512(digest),
+                }),
                 None => None,
             }
         }
         #[cfg(feature = "blake3")]
         BinaryType::Blake3 => {
-            if s.len() != content_start + 64 {
+            if bytes.len() != content_start + 64 {
                 // type + separator + 64 hex chars
                 return None;
             }
             match blake3::parse_blake3_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Blake3(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Blake3(digest),
+                }),
                 None => None,
             }
         }
         #[cfg(feature = "ulid")]
         BinaryType::Ulid => {
-            if s.len() != content_start + 32 {
+            if bytes.len() != content_start + 32 {
                 // type + separator + 32 hex chars
                 return None;
             }
             match ulid::parse_ulid_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Ulid(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Ulid(digest),
+                }),
                 None => None,
             }
         }
         #[cfg(feature = "uuid")]
         BinaryType::Uuid => {
-            if s.len() != content_start + 32 {
+            if bytes.len() != content_start + 32 {
                 // type + separator + 32 hex chars
                 return None;
             }
             match uuid::parse_uuid_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Uuid(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Uuid(digest),
+                }),
                 None => None,
             }
         }
         BinaryType::Fingerprint => {
-            if s.len() != content_start + 16 {
+            if bytes.len() != content_start + 16 {
                 // type + separator + 16 hex chars
                 return None;
             }
             match fingerprint::parse_fingerprint_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Fingerprint(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Fingerprint(digest),
+                }),
                 None => None,
             }
         }

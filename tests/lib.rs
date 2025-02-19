@@ -466,3 +466,20 @@ fn test_json_serialization_works() {
     let deserialized: OkId = serde_json::from_str(&serialized).unwrap();
     assert_eq!(parsed.to_string(), deserialized.to_string(),);
 }
+
+#[cfg(feature = "sha2")]
+#[test]
+fn test_wireformat_decode_works() {
+    use jetstream_wireformat::WireFormat;
+
+    const TEST_OKID: &str = "2ːb94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9";
+    const PARSED: Option<OkId> = const_parse_okid(TEST_OKID);
+    if PARSED.is_none() {
+        panic!("Failed to parse OkId");
+    }
+    let parsed = PARSED.unwrap();
+    let mut buf: Vec<u8> = vec![];
+    let bytes = parsed.into_bytes::<33>();
+    buf.extend_from_slice(&bytes);
+    OkId::decode(&mut buf.as_slice()).unwrap();
+}
