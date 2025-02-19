@@ -47,3 +47,7 @@ graphql = ["dep:async-graphql"]
 
 [dev-dependencies]
 insta = { version = "1.40.0", features = ["yaml"] }
+
+[[bin]]
+name = "oksecret"
+path = "src/main.rs"

@@ -4,7 +4,9 @@ use {
 };
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub(super) struct Blake3(pub(super) [u8; 32]);
+pub(super) struct Blake3(pub(super) [u8; BLAKE3_LEN]);
+
+const BLAKE3_LEN: usize = 32;
 
 impl From<blake3::Hasher> for OkId {
     fn from(value: blake3::Hasher) -> Self {
