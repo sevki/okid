@@ -575,11 +575,6 @@ impl OkId {
         }
         bytes
     }
-    /// Convert the OkId into a byte slice
-    pub const fn as_bytes<const SIZE: usize>(&self) -> &[u8; SIZE] {
-        // SAFETY: We've initialized the entire buffer with valid bytes
-        unsafe { &*(&self.into_bytes() as *const [u8; SIZE]) }
-    }
 }
 
 /// Create a path-safe string from an OkId
