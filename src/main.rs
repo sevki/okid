@@ -1,5 +1,7 @@
-use okid::OkId;
-use std::io::{self, Read};
+use {
+    okid::OkId,
+    std::io::{self, Read},
+};
 
 fn main() -> io::Result<()> {
     // Read from stdin

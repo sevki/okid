@@ -80,7 +80,7 @@ pub mod uuid;
 
 mod serde;
 
-#[derive(Copy, Clone, Debug, PartialEq, Hash, Ord, Eq, PartialOrd, Serialize)]
+#[derive(Copy, Clone, Debug, Serialize)]
 #[repr(u8)]
 #[typeshare(swift = "Codable")]
 #[serde(rename_all = "camelCase")]
@@ -239,30 +239,30 @@ impl PartialEq for OkId {
     fn eq(&self, other: &Self) -> bool {
         match (&self.digest, &other.digest) {
             #[cfg(feature = "sha1")]
-            (Digest::Sha1(a), Digest::Sha1(b)) => a == b,
+            (Digest::Sha1(a), Digest::Sha1(b)) => a.0 == b.0,
             #[cfg(feature = "sha1")]
             (Digest::Sha1(_), _) => false,
             #[cfg(feature = "sha2")]
-            (Digest::Sha256(a), Digest::Sha256(b)) => a == b,
+            (Digest::Sha256(a), Digest::Sha256(b)) => a.0 == b.0,
             #[cfg(feature = "sha2")]
             (Digest::Sha256(_), _) => false,
             #[cfg(feature = "sha3")]
-            (Digest::Sha512(a), Digest::Sha512(b)) => a == b,
+            (Digest::Sha512(a), Digest::Sha512(b)) => a.0 == b.0,
             #[cfg(feature = "sha3")]
             (Digest::Sha512(_), _) => false,
             #[cfg(feature = "sha3")]
-            (Digest::Blake3(a), Digest::Blake3(b)) => a == b,
+            (Digest::Blake3(a), Digest::Blake3(b)) => a.0 == b.0,
             #[cfg(feature = "blake3")]
             (Digest::Blake3(_), _) => false,
             #[cfg(feature = "ulid")]
-            (Digest::Ulid(a), Digest::Ulid(b)) => a == b,
+            (Digest::Ulid(a), Digest::Ulid(b)) => a.0 == b.0,
             #[cfg(feature = "ulid")]
             (Digest::Ulid(_), _) => false,
             #[cfg(feature = "uuid")]
-            (Digest::Uuid(a), Digest::Uuid(b)) => a == b,
+            (Digest::Uuid(a), Digest::Uuid(b)) => a.0 == b.0,
             #[cfg(feature = "uuid")]
             (Digest::Uuid(_), _) => false,
-            (Digest::Fingerprint(a), Digest::Fingerprint(b)) => a == b,
+            (Digest::Fingerprint(a), Digest::Fingerprint(b)) => a.0 == b.0,
             (Digest::Fingerprint(_), _) => false,
         }
     }
@@ -282,21 +282,41 @@ impl PartialOrd for OkId {
 
 impl Hash for OkId {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.hash_type.hash(state);
         match &self.digest {
             #[cfg(feature = "sha1")]
-            Digest::Sha1(d) => d.hash(state),
+            Digest::Sha1(d) => {
+                state.write_u8(self.hash_type as u8);
+                d.0.hash(state);
+            }
             #[cfg(feature = "sha2")]
-            Digest::Sha256(d) => d.hash(state),
+            Digest::Sha256(d) => {
+                state.write_u8(self.hash_type as u8);
+                d.0.hash(state);
+            }
             #[cfg(feature = "sha3")]
-            Digest::Sha512(d) => d.hash(state),
+            Digest::Sha512(d) => {
+                state.write_u8(self.hash_type as u8);
+                d.0.hash(state);
+            }
             #[cfg(feature = "blake3")]
-            Digest::Blake3(d) => d.hash(state),
+            Digest::Blake3(d) => {
+                state.write_u8(self.hash_type as u8);
+                d.0.hash(state);
+            }
             #[cfg(feature = "ulid")]
-            Digest::Ulid(d) => d.hash(state),
+            Digest::Ulid(d) => {
+                state.write_u8(self.hash_type as u8);
+                d.0.hash(state);
+            }
             #[cfg(feature = "uuid")]
-            Digest::Uuid(d) => d.hash(state),
-            Digest::Fingerprint(d) => d.hash(state),
+            Digest::Uuid(d) => {
+                state.write_u8(self.hash_type as u8);
+                d.0.hash(state);
+            }
+            Digest::Fingerprint(d) => {
+                state.write_u8(self.hash_type as u8);
+                d.0.hash(state);
+            }
         }
     }
 }
@@ -353,59 +373,45 @@ fn parse_okid(s: &str) -> Result<OkId, Error> {
     let rest = chars.collect::<String>();
     match hash_type {
         #[cfg(feature = "sha1")]
-        BinaryType::Sha1 => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Sha1(rest.parse()?),
-            })
-        }
+        BinaryType::Sha1 => Ok(OkId {
+            hash_type,
+            digest: Digest::Sha1(rest.parse()?),
+        }),
         #[cfg(feature = "sha2")]
-        BinaryType::Sha256 => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Sha256(rest.parse()?),
-            })
-        }
+        BinaryType::Sha256 => Ok(OkId {
+            hash_type,
+            digest: Digest::Sha256(rest.parse()?),
+        }),
         #[cfg(feature = "sha3")]
-        BinaryType::Sha3_512 => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Sha512(rest.parse()?),
-            })
-        }
+        BinaryType::Sha3_512 => Ok(OkId {
+            hash_type,
+            digest: Digest::Sha512(rest.parse()?),
+        }),
         #[cfg(feature = "blake3")]
-        BinaryType::Blake3 => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Blake3(rest.parse()?),
-            })
-        }
+        BinaryType::Blake3 => Ok(OkId {
+            hash_type,
+            digest: Digest::Blake3(rest.parse()?),
+        }),
         #[cfg(feature = "ulid")]
-        BinaryType::Ulid => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Ulid(rest.parse()?),
-            })
-        }
+        BinaryType::Ulid => Ok(OkId {
+            hash_type,
+            digest: Digest::Ulid(rest.parse()?),
+        }),
         #[cfg(feature = "uuid")]
-        BinaryType::Uuid => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Uuid(rest.parse()?),
-            })
-        }
+        BinaryType::Uuid => Ok(OkId {
+            hash_type,
+            digest: Digest::Uuid(rest.parse()?),
+        }),
         BinaryType::Unknown => todo!(),
-        BinaryType::Fingerprint => {
-            Ok(OkId {
-                hash_type,
-                digest: Digest::Fingerprint(rest.parse()?),
-            })
-        }
+        BinaryType::Fingerprint => Ok(OkId {
+            hash_type,
+            digest: Digest::Fingerprint(rest.parse()?),
+        }),
     }
 }
 
 /// Digest of the binary identifier
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 #[typeshare(swift = "Equatable, Codable, Comparable, Hashable")]
 #[typeshare(serialized_as = "String")]
 enum Digest {
@@ -650,12 +656,10 @@ const fn parse_okid_bytes(bytes: &[u8]) -> Option<OkId> {
                 return None;
             }
             match sha1::parse_sha1_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Sha1(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Sha1(digest),
+                }),
                 None => None,
             }
         }
@@ -666,12 +670,10 @@ const fn parse_okid_bytes(bytes: &[u8]) -> Option<OkId> {
                 return None;
             }
             match sha2::parse_sha256_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Sha256(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Sha256(digest),
+                }),
                 None => None,
             }
         }
@@ -682,12 +684,10 @@ const fn parse_okid_bytes(bytes: &[u8]) -> Option<OkId> {
                 return None;
             }
             match sha3::parse_sha3_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Sha512(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Sha512(digest),
+                }),
                 None => None,
             }
         }
@@ -698,12 +698,10 @@ const fn parse_okid_bytes(bytes: &[u8]) -> Option<OkId> {
                 return None;
             }
             match blake3::parse_blake3_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Blake3(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Blake3(digest),
+                }),
                 None => None,
             }
         }
@@ -714,12 +712,10 @@ const fn parse_okid_bytes(bytes: &[u8]) -> Option<OkId> {
                 return None;
             }
             match ulid::parse_ulid_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Ulid(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Ulid(digest),
+                }),
                 None => None,
             }
         }
@@ -730,12 +726,10 @@ const fn parse_okid_bytes(bytes: &[u8]) -> Option<OkId> {
                 return None;
             }
             match uuid::parse_uuid_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Uuid(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Uuid(digest),
+                }),
                 None => None,
             }
         }
@@ -745,12 +739,10 @@ const fn parse_okid_bytes(bytes: &[u8]) -> Option<OkId> {
                 return None;
             }
             match fingerprint::parse_fingerprint_bytes(bytes, content_start) {
-                Some(digest) => {
-                    Some(OkId {
-                        hash_type,
-                        digest: Digest::Fingerprint(digest),
-                    })
-                }
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::Fingerprint(digest),
+                }),
                 None => None,
             }
         }
