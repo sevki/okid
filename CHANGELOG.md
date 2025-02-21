@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.12.0](https://github.com/sevki/okid/compare/v0.11.1...v0.12.0) (2025-02-21)
+
+
+### Features
+
+* add safe display feature ([ab9e52e](https://github.com/sevki/okid/commit/ab9e52ea8dda6196ed1551e5a410583dd6316520))
+
+
+### Bug Fixes
+
+* remove derive hash implementations ([973fd29](https://github.com/sevki/okid/commit/973fd29334e1865c9216a6a320001ea71f1be4c8))
+
 ## [0.11.1](https://github.com/sevki/okid/compare/v0.11.0...v0.11.1) (2025-02-19)
 
 
