@@ -1,6 +1,6 @@
 [package]
 name = "okid"
-version = "0.11.0"
+version = "0.11.1"
 edition = "2021"
 readme = "README.md"
 description = "A library for generating double clickable ids"
@@ -27,9 +27,9 @@ zerocopy = "0.8.18"
 zeroize = "1.8.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-jetstream_wireformat = "8.1.1"
+jetstream_wireformat = "8.1.2"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-jetstream_wireformat = { version = "8.0.4", default-features = false, features = [
+jetstream_wireformat = { version = "8.1.2", default-features = false, features = [
     "std",
 ] }
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.1](https://github.com/sevki/okid/compare/v0.11.0...v0.11.1) (2025-02-19)
+
+
+### Bug Fixes
+
+* remove as bytes ([8401376](https://github.com/sevki/okid/commit/8401376c3773d0c5986f1720de01292a8700e6d9))
+* wrong const headers ([96d3560](https://github.com/sevki/okid/commit/96d3560f99ef917139ffae7eb79ccb559f0b358a))
+
 ## [0.11.0](https://github.com/sevki/okid/compare/v0.10.1...v0.11.0) (2025-02-17)
 
 
