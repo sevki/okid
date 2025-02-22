@@ -1,10 +1,12 @@
-use std::{fmt::Display, str::FromStr};
+use {
+    crate::{hex_to_byte, BinaryType, Digest, IntoOkId, OkId},
+    std::{fmt::Display, str::FromStr},
+    zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes},
+};
 
-use crate::hex_to_byte;
-
-use super::{BinaryType, Digest, IntoOkId, OkId};
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(
+    Copy, Clone, Debug, ByteHash, PartialOrd, Ord, ByteEq, Immutable, IntoBytes, FromBytes,
+)]
 pub(super) struct Fingerprint(pub(super) u64);
 
 impl From<u64> for OkId {
