@@ -4,9 +4,10 @@ use {
     digest::core_api::CoreWrapper,
     sha3::Digest,
     std::{fmt::Display, str::FromStr},
+    zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes},
 };
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, ByteEq, Immutable, IntoBytes, ByteHash, FromBytes)]
 pub(super) struct Sha512(pub(super) [u8; 64]);
 
 impl From<sha3::Sha3_512> for OkId {

@@ -2,9 +2,10 @@ use {
     crate::{hex_to_byte, OkId},
     sha2::Digest,
     std::{fmt::Display, str::FromStr},
+    zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes},
 };
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, ByteEq, Immutable, IntoBytes, ByteHash, FromBytes)]
 pub(super) struct Sha256(pub(crate) [u8; 32]);
 
 impl From<sha2::Sha256> for OkId {

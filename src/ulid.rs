@@ -1,9 +1,10 @@
 use {
     crate::{u128::parse_u128, OkId},
     std::fmt::Display,
+    zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes},
 };
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, ByteEq, Immutable, IntoBytes, ByteHash, FromBytes)]
 pub(super) struct Ulid(pub(super) u128);
 
 impl From<ulid::Ulid> for OkId {

@@ -1,14 +1,11 @@
 use jetstream_wireformat::JetStreamWireFormat;
-#[cfg(feature = "sha1")]
-use sha1::Digest as sha1digest;
-#[cfg(feature = "sha2")]
-use sha2::Digest;
 
 use okid::{const_parse_okid, OkId, SEPARATOR, SEPARATOR_BYTES, SEPARATOR_BYTES_LEN};
 
 #[cfg(feature = "sha1")]
 #[test]
 fn display() {
+    use sha1::Digest as sha1digest;
     let hasher = sha1::Sha1::new();
     let binary_id = OkId::from(hasher);
     insta::assert_yaml_snapshot!(binary_id.to_string(), @r###"
@@ -18,6 +15,7 @@ fn display() {
 #[cfg(feature = "sha1")]
 #[test]
 fn display_hello_world() {
+    use sha1::Digest as sha1digest;
     let mut hasher = sha1::Sha1::new();
     hasher.update(b"hello world");
     let binary_id = OkId::from(hasher);
@@ -28,6 +26,7 @@ fn display_hello_world() {
 #[cfg(feature = "sha2")]
 #[test]
 fn display_hello_world_sha256() {
+    use sha2::Digest as sha2digest;
     let mut hasher = sha2::Sha256::new();
     hasher.update(b"hello world");
     let binary_id = OkId::from(hasher);
@@ -39,6 +38,8 @@ fn display_hello_world_sha256() {
 #[cfg(feature = "sha3")]
 #[test]
 fn display_hello_world_sha3() {
+    use sha3::Digest as sha3digest;
+
     let mut hasher = sha3::Sha3_512::new();
     hasher.update(b"hello world");
     let binary_id = OkId::from(hasher);
@@ -140,6 +141,7 @@ fn parse_hello_world_ulid() {
 #[test]
 fn wireformat_hello_world_sha1() {
     use jetstream_wireformat::WireFormat;
+    use sha1::Digest as sha1digest;
 
     let mut hasher = sha1::Sha1::new();
     hasher.update(b"hello world");
@@ -156,6 +158,7 @@ fn wireformat_hello_world_sha1() {
 #[test]
 fn wireformat_hello_world_sha256() {
     use jetstream_wireformat::WireFormat;
+    use sha2::Digest as sha2digest;
 
     let mut hasher = sha2::Sha256::new();
     hasher.update(b"hello world");
@@ -213,7 +216,7 @@ fn wireformat_fingerprint() {
 #[test]
 fn wireformat_hello_world_sha3() {
     use jetstream_wireformat::WireFormat;
-
+    use sha3::Digest as sha3digest;
     let mut hasher = sha3::Sha3_512::new();
     hasher.update(b"hello world");
     let binary_id = OkId::from(hasher);
@@ -229,7 +232,6 @@ fn wireformat_hello_world_sha3() {
 #[test]
 fn wireformat_hello_world_blake3() {
     use jetstream_wireformat::WireFormat;
-
     let mut hasher = blake3::Hasher::new();
     hasher.update(b"hello world");
     let binary_id = OkId::from(hasher);
@@ -246,8 +248,9 @@ fn wireformat_hello_world_blake3() {
 #[test]
 fn serde_hello_world_sha1() {
     use insta::assert_snapshot;
-
+    use sha1::Digest as sha1digest;
     let mut hasher = sha1::Sha1::new();
+
     hasher.update(b"hello world");
     let binary_id = OkId::from(hasher);
     let serialized = serde_json::to_string_pretty(&binary_id).unwrap();
@@ -265,7 +268,7 @@ fn serde_hello_world_sha1() {
 #[test]
 fn serde_hello_world_sha256() {
     use insta::assert_snapshot;
-
+    use sha2::Digest as sha2digest;
     let mut hasher = sha2::Sha256::new();
     hasher.update(b"hello world");
     let binary_id = OkId::from(hasher);
@@ -293,6 +296,8 @@ pub struct File(pub OkId, pub ChunkMap);
 #[test]
 fn serde_file_sha1() {
     use jetstream_wireformat::wire_format_extensions::ConvertWireFormat;
+    use sha1::Digest as sha1digest;
+
     let mut hasher = sha1::Sha1::new();
     hasher.update(b"hello world");
     let binary_id = OkId::from(hasher);

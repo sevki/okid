@@ -7,6 +7,8 @@
 use std::{fmt::Display, hash::Hash, str::FromStr};
 
 use digest::OutputSizeUser;
+use okstd::impls;
+use zerocopy::{Immutable, IntoBytes};
 
 use {::serde::Serialize, serde_json::json};
 
@@ -278,6 +280,23 @@ impl PartialOrd for OkId {
             _ => None,
         }
     }
+}
+/// make sure all implementations implement the trait
+#[impls(Immutable, IntoBytes, Hash, zerocopy::FromBytes)]
+enum _Hashed {
+    #[cfg(feature = "blake3")]
+    Blake3(crate::blake3::Blake3),
+    #[cfg(feature = "sha2")]
+    Sha256(crate::sha2::Sha256),
+    #[cfg(feature = "sha3")]
+    Sha512(crate::sha3::Sha512),
+    #[cfg(feature = "sha1")]
+    Sha1(crate::sha1::Sha1),
+    #[cfg(feature = "uuid")]
+    Uuid(crate::uuid::Uuid),
+    #[cfg(feature = "ulid")]
+    Ulid(crate::ulid::Ulid),
+    Fingerprint(crate::fingerprint::Fingerprint),
 }
 
 impl Hash for OkId {

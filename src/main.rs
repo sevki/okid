@@ -1,12 +1,14 @@
+use okstd::prelude::*;
 use {
     okid::OkId,
     std::io::{self, Read},
 };
 
-fn main() -> io::Result<()> {
+#[okstd::main]
+async fn main() {
     // Read from stdin
     let mut input = String::new();
-    io::stdin().read_to_string(&mut input)?;
+    io::stdin().read_to_string(&mut input).unwrap();
     let input = input.trim();
     let second_input = input;
 
@@ -22,6 +24,4 @@ fn main() -> io::Result<()> {
             std::process::exit(1);
         }
     }
-
-    Ok(())
 }
