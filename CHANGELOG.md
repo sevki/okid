@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/sevki/okid/compare/v0.12.0...v0.12.1) (2025-02-22)
+
+
+### Bug Fixes
+
+* ensure all variants are zerocopy ([9f4be9c](https://github.com/sevki/okid/commit/9f4be9c2b934436d994ebf99436120a735826c73))
+
 ## [0.12.0](https://github.com/sevki/okid/compare/v0.11.1...v0.12.0) (2025-02-21)
 
 
