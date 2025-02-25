@@ -1,12 +1,23 @@
 use {
     crate::{hex_to_byte, BinaryType, Digest, IntoOkId, OkId},
     std::fmt::Display,
-    zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes},
+    zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes, Unaligned},
 };
 
 #[derive(
-    Copy, Clone, Debug, ByteHash, PartialOrd, Ord, ByteEq, Immutable, IntoBytes, FromBytes,
+    Copy,
+    Clone,
+    Debug,
+    ByteHash,
+    PartialOrd,
+    Ord,
+    ByteEq,
+    Immutable,
+    IntoBytes,
+    FromBytes,
+    Unaligned,
 )]
+#[repr(transparent)]
 pub(super) struct Blake3(pub(super) [u8; BLAKE3_LEN]);
 
 const BLAKE3_LEN: usize = 32;

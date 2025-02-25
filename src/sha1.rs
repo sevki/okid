@@ -3,10 +3,11 @@ use {
     crate::hex_to_byte,
     digest::core_api::CoreWrapper,
     std::{fmt::Display, str::FromStr},
-    zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes},
+    zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes, Unaligned},
 };
 
-#[derive(Copy, Clone, Debug, ByteHash, ByteEq, Immutable, IntoBytes, FromBytes)]
+#[derive(Copy, Clone, Debug, ByteHash, ByteEq, Immutable, IntoBytes, FromBytes, Unaligned)]
+#[repr(C)]
 pub(super) struct Sha1(pub(crate) [u8; 20]);
 
 use sha1::Digest as sha1Digest;

@@ -35,7 +35,7 @@ jetstream_wireformat = { version = "8.1.2", default-features = false, features =
 ] }
 
 [features]
-default = ["sha2", "sha3", "blake3", "uuid", "ulid", "openapi", "sha1"]
+default = ["sha2", "sha3", "blake3", "uuid", "ulid", "openapi"]
 macro-diagnostics = []
 sha1 = ["dep:sha1"]
 sha2 = ["dep:sha2"]

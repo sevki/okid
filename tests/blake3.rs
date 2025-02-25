@@ -66,6 +66,13 @@ fn test_blake3_hash_set_behavior() {
 }
 
 #[test]
+fn test_empty_hashset() {
+    let hasher = Hasher::new();
+
+    dbg!("{}", OkId::from(hasher));
+}
+
+#[test]
 fn test_blake3_collisions() {
     let hashes: Vec<OkId> = (0..1_000_000)
         .map(|i| {
