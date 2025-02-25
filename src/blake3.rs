@@ -17,7 +17,7 @@ use {
     FromBytes,
     Unaligned,
 )]
-#[repr(transparent)]
+#[repr(C)]
 pub(super) struct Blake3(pub(super) [u8; BLAKE3_LEN]);
 
 const BLAKE3_LEN: usize = 32;
