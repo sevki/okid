@@ -140,8 +140,7 @@ fn parse_hello_world_ulid() {
 #[cfg(feature = "sha1")]
 #[test]
 fn wireformat_hello_world_sha1() {
-    use jetstream_wireformat::WireFormat;
-    use sha1::Digest as sha1digest;
+    use {jetstream_wireformat::WireFormat, sha1::Digest as sha1digest};
 
     let mut hasher = sha1::Sha1::new();
     hasher.update(b"hello world");
@@ -157,8 +156,7 @@ fn wireformat_hello_world_sha1() {
 #[cfg(feature = "sha2")]
 #[test]
 fn wireformat_hello_world_sha256() {
-    use jetstream_wireformat::WireFormat;
-    use sha2::Digest as sha2digest;
+    use {jetstream_wireformat::WireFormat, sha2::Digest as sha2digest};
 
     let mut hasher = sha2::Sha256::new();
     hasher.update(b"hello world");
@@ -215,8 +213,7 @@ fn wireformat_fingerprint() {
 #[cfg(feature = "sha3")]
 #[test]
 fn wireformat_hello_world_sha3() {
-    use jetstream_wireformat::WireFormat;
-    use sha3::Digest as sha3digest;
+    use {jetstream_wireformat::WireFormat, sha3::Digest as sha3digest};
     let mut hasher = sha3::Sha3_512::new();
     hasher.update(b"hello world");
     let binary_id = OkId::from(hasher);
@@ -247,8 +244,7 @@ fn wireformat_hello_world_blake3() {
 #[cfg(feature = "sha1")]
 #[test]
 fn serde_hello_world_sha1() {
-    use insta::assert_snapshot;
-    use sha1::Digest as sha1digest;
+    use {insta::assert_snapshot, sha1::Digest as sha1digest};
     let mut hasher = sha1::Sha1::new();
 
     hasher.update(b"hello world");
@@ -267,8 +263,7 @@ fn serde_hello_world_sha1() {
 #[cfg(feature = "sha2")]
 #[test]
 fn serde_hello_world_sha256() {
-    use insta::assert_snapshot;
-    use sha2::Digest as sha2digest;
+    use {insta::assert_snapshot, sha2::Digest as sha2digest};
     let mut hasher = sha2::Sha256::new();
     hasher.update(b"hello world");
     let binary_id = OkId::from(hasher);
@@ -295,8 +290,10 @@ pub struct File(pub OkId, pub ChunkMap);
 #[cfg(feature = "sha1")]
 #[test]
 fn serde_file_sha1() {
-    use jetstream_wireformat::wire_format_extensions::ConvertWireFormat;
-    use sha1::Digest as sha1digest;
+    use {
+        jetstream_wireformat::wire_format_extensions::ConvertWireFormat,
+        sha1::Digest as sha1digest,
+    };
 
     let mut hasher = sha1::Sha1::new();
     hasher.update(b"hello world");

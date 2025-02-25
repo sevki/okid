@@ -1,19 +1,26 @@
 use {
     crate::{hex_to_byte, BinaryType, Digest, IntoOkId, OkId},
     std::{fmt::Display, str::FromStr},
-    zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes},
+    zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes, LittleEndian, Unaligned, U64},
 };
 
-#[derive(
-    Copy, Clone, Debug, ByteHash, PartialOrd, Ord, ByteEq, Immutable, IntoBytes, FromBytes,
-)]
-pub(super) struct Fingerprint(pub(super) u64);
+#[derive(Copy, Clone, ByteHash, ByteEq, Immutable, IntoBytes, FromBytes, Unaligned)]
+#[repr(C)]
+pub(super) struct Fingerprint(pub(super) U64<LittleEndian>);
+
+impl std::fmt::Debug for Fingerprint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let buf = hex::encode(self.0.as_bytes());
+        f.write_str(&buf)?;
+        Ok(())
+    }
+}
 
 impl From<u64> for OkId {
     fn from(value: u64) -> Self {
         Self {
             hash_type: BinaryType::Fingerprint,
-            digest: Digest::Fingerprint(Fingerprint(value)),
+            digest: Digest::Fingerprint(Fingerprint(U64::<LittleEndian>::new(value))),
         }
     }
 }
@@ -22,7 +29,7 @@ impl IntoOkId for u64 {}
 
 impl Display for Fingerprint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let buf = hex::encode(self.0.to_le_bytes());
+        let buf = hex::encode(self.0.as_bytes());
         f.write_str(&buf)?;
         Ok(())
     }
@@ -35,7 +42,9 @@ impl FromStr for Fingerprint {
         let buf = hex::decode(s)?;
         let mut hash: [u8; 8] = [0; 8];
         hash.copy_from_slice(&buf);
-        Ok(Fingerprint(u64::from_le_bytes(hash)))
+        Ok(Fingerprint(U64::new(
+            zerocopy::little_endian::U64::from_bytes(hash).get(),
+        )))
     }
 }
 
@@ -44,7 +53,7 @@ impl TryFrom<OkId> for u64 {
 
     fn try_from(value: OkId) -> Result<Self, Self::Error> {
         match value.digest {
-            Digest::Fingerprint(Fingerprint(value)) => Ok(value),
+            Digest::Fingerprint(Fingerprint(value)) => Ok(value.get()),
             _ => Err(super::Error::InvalidHashType),
         }
     }
@@ -65,7 +74,7 @@ pub(crate) const fn parse_fingerprint_bytes(buf: &[u8], start: usize) -> Option<
         result[i / 2] = (high << 4) | low;
         i += 2;
     }
-    Some(Fingerprint(
+    Some(Fingerprint(U64::new(
         zerocopy::little_endian::U64::from_bytes(result).get(),
-    ))
+    )))
 }

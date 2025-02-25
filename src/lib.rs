@@ -4,16 +4,6 @@
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 #![deny(missing_docs)]
 
-use std::{fmt::Display, hash::Hash, str::FromStr};
-
-use digest::OutputSizeUser;
-use okstd::impls;
-use zerocopy::{Immutable, IntoBytes};
-
-use {::serde::Serialize, serde_json::json};
-
-use typeshare::typeshare;
-
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
 #[cfg(feature = "openapi")]
@@ -21,28 +11,15 @@ use utoipa::{
     openapi::{schema::SchemaType, SchemaFormat, Type as UType},
     PartialSchema,
 };
-
-impl From<OkId> for Vec<u64> {
-    fn from(value: OkId) -> Self {
-        let mut result = vec![value.hash_type as u64];
-        result.extend(match value.digest {
-            #[cfg(feature = "blake3")]
-            Digest::Blake3(blake3) => blake3.into(),
-            Digest::Fingerprint(fingerprint) => vec![fingerprint.0],
-            #[cfg(feature = "sha1")]
-            Digest::Sha1(sha1) => sha1.into(),
-            #[cfg(feature = "sha2")]
-            Digest::Sha256(sha256) => sha256.into(),
-            #[cfg(feature = "sha3")]
-            Digest::Sha512(sha512) => sha512.into(),
-            #[cfg(feature = "ulid")]
-            Digest::Ulid(ulid) => ulid.into(),
-            #[cfg(feature = "uuid")]
-            Digest::Uuid(uuid) => uuid.into(),
-        });
-        result
-    }
-}
+use {
+    ::serde::Serialize,
+    digest::OutputSizeUser,
+    okstd::impls,
+    serde_json::json,
+    std::{fmt::Display, hash::Hash, str::FromStr},
+    typeshare::typeshare,
+    zerocopy::{Immutable, IntoBytes, KnownLayout, Unaligned},
+};
 
 /// Separator character for the OkId string representation
 pub const SEPARATOR: char = 'ː';
@@ -53,7 +30,7 @@ pub const SEPARATOR_BYTES_LEN: usize = 2;
 
 mod secret;
 mod size;
-mod u128;
+mod uint;
 mod wireformat;
 
 #[doc(hidden)]
@@ -82,7 +59,7 @@ pub mod uuid;
 
 mod serde;
 
-#[derive(Copy, Clone, Debug, Serialize)]
+#[derive(Copy, Clone, Debug, Serialize, Immutable, Unaligned, IntoBytes)]
 #[repr(u8)]
 #[typeshare(swift = "Codable")]
 #[serde(rename_all = "camelCase")]
@@ -199,8 +176,9 @@ impl Display for BinaryType {
 }
 
 /// OkId is a double clickable representation of arbitrary binary data
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Immutable)]
 #[typeshare(swift = "Codable")]
+#[repr(C)]
 pub struct OkId {
     hash_type: BinaryType,
     digest: Digest,
@@ -220,7 +198,7 @@ impl PartialSchema for OkId {
         .to_string()));
         let version = env!("CARGO_PKG_VERSION");
         o.description = Some(format!(
-            r###"[OkId v{}](https://ok.software/ok/-/packages/cargo/okid/{})
+            r###"[OkId v{}](https://docs.rs/okid/{})
             "###,
             version, version
         ));
@@ -237,104 +215,87 @@ impl ToSchema for OkId {
     }
 }
 
+impl PartialOrd for OkId {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match (&self.digest, &other.digest) {
+            #[cfg(feature = "ulid")]
+            (Digest::Ulid(a), Digest::Ulid(b)) => a.0.get().partial_cmp(&b.0.get()),
+            _ => None,
+        }
+    }
+}
+
 impl PartialEq for OkId {
     fn eq(&self, other: &Self) -> bool {
         match (&self.digest, &other.digest) {
             #[cfg(feature = "sha1")]
-            (Digest::Sha1(a), Digest::Sha1(b)) => a.0 == b.0,
+            (Digest::Sha1(a), Digest::Sha1(b)) => a == b,
             #[cfg(feature = "sha1")]
-            (Digest::Sha1(_), _) => false,
+            (Digest::Sha1(_sha1), _) => false,
             #[cfg(feature = "sha2")]
-            (Digest::Sha256(a), Digest::Sha256(b)) => a.0 == b.0,
+            (Digest::Sha256(a), Digest::Sha256(b)) => a == b,
             #[cfg(feature = "sha2")]
-            (Digest::Sha256(_), _) => false,
+            (Digest::Sha256(_sha256), _) => false,
             #[cfg(feature = "sha3")]
-            (Digest::Sha512(a), Digest::Sha512(b)) => a.0 == b.0,
+            (Digest::Sha512(a), Digest::Sha512(b)) => a == b,
             #[cfg(feature = "sha3")]
-            (Digest::Sha512(_), _) => false,
-            #[cfg(feature = "sha3")]
-            (Digest::Blake3(a), Digest::Blake3(b)) => a.0 == b.0,
+            (Digest::Sha512(_sha512), _) => false,
             #[cfg(feature = "blake3")]
-            (Digest::Blake3(_), _) => false,
+            (Digest::Blake3(a), Digest::Blake3(b)) => a == b,
+            #[cfg(feature = "blake3")]
+            (Digest::Blake3(_blake3), _) => false,
             #[cfg(feature = "ulid")]
-            (Digest::Ulid(a), Digest::Ulid(b)) => a.0 == b.0,
+            (Digest::Ulid(a), Digest::Ulid(b)) => a == b,
             #[cfg(feature = "ulid")]
-            (Digest::Ulid(_), _) => false,
+            (Digest::Ulid(_ulid), _) => false,
             #[cfg(feature = "uuid")]
-            (Digest::Uuid(a), Digest::Uuid(b)) => a.0 == b.0,
+            (Digest::Uuid(a), Digest::Uuid(b)) => a == b,
             #[cfg(feature = "uuid")]
-            (Digest::Uuid(_), _) => false,
-            (Digest::Fingerprint(a), Digest::Fingerprint(b)) => a.0 == b.0,
-            (Digest::Fingerprint(_), _) => false,
+            (Digest::Uuid(_uuid), _) => false,
+            (Digest::Fingerprint(a), Digest::Fingerprint(b)) => a == b,
+            (Digest::Fingerprint(_fingerprint), _) => false,
         }
     }
 }
 
 impl Eq for OkId {}
 
-impl PartialOrd for OkId {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        match (&self.digest, &other.digest) {
-            #[cfg(feature = "ulid")]
-            (Digest::Ulid(a), Digest::Ulid(b)) => a.0.partial_cmp(&b.0),
-            _ => None,
-        }
-    }
-}
-/// make sure all implementations implement the trait
-#[impls(Immutable, IntoBytes, Hash, zerocopy::FromBytes)]
-enum _Hashed {
-    #[cfg(feature = "blake3")]
-    Blake3(crate::blake3::Blake3),
-    #[cfg(feature = "sha2")]
-    Sha256(crate::sha2::Sha256),
-    #[cfg(feature = "sha3")]
-    Sha512(crate::sha3::Sha512),
-    #[cfg(feature = "sha1")]
-    Sha1(crate::sha1::Sha1),
-    #[cfg(feature = "uuid")]
-    Uuid(crate::uuid::Uuid),
-    #[cfg(feature = "ulid")]
-    Ulid(crate::ulid::Ulid),
-    Fingerprint(crate::fingerprint::Fingerprint),
-}
-
 impl Hash for OkId {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         match &self.digest {
             #[cfg(feature = "sha1")]
             Digest::Sha1(d) => {
-                state.write_u8(self.hash_type as u8);
+                state.write_u8(b'1');
                 d.0.hash(state);
             }
             #[cfg(feature = "sha2")]
             Digest::Sha256(d) => {
-                state.write_u8(self.hash_type as u8);
+                state.write_u8(b'2');
                 d.0.hash(state);
             }
             #[cfg(feature = "sha3")]
             Digest::Sha512(d) => {
-                state.write_u8(self.hash_type as u8);
+                state.write_u8(b'3');
                 d.0.hash(state);
             }
             #[cfg(feature = "blake3")]
             Digest::Blake3(d) => {
-                state.write_u8(self.hash_type as u8);
+                state.write_u8(b'b');
                 d.0.hash(state);
             }
             #[cfg(feature = "ulid")]
             Digest::Ulid(d) => {
-                state.write_u8(self.hash_type as u8);
-                d.0.hash(state);
+                state.write_u8(b'u');
+                d.0.get().hash(state);
             }
             #[cfg(feature = "uuid")]
             Digest::Uuid(d) => {
-                state.write_u8(self.hash_type as u8);
-                d.0.hash(state);
+                state.write_u8(b'i');
+                d.0.get().hash(state);
             }
             Digest::Fingerprint(d) => {
-                state.write_u8(self.hash_type as u8);
-                d.0.hash(state);
+                state.write_u8(b'f');
+                d.0.get().hash(state);
             }
         }
     }
@@ -430,9 +391,11 @@ fn parse_okid(s: &str) -> Result<OkId, Error> {
 }
 
 /// Digest of the binary identifier
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Immutable, KnownLayout)]
 #[typeshare(swift = "Equatable, Codable, Comparable, Hashable")]
 #[typeshare(serialized_as = "String")]
+#[impls(Immutable, IntoBytes, Hash, zerocopy::FromBytes, Unaligned, Eq)]
+#[repr(C)]
 enum Digest {
     #[cfg(feature = "sha1")]
     Sha1(crate::sha1::Sha1),
@@ -589,7 +552,7 @@ impl OkId {
             }
             #[cfg(feature = "ulid")]
             Digest::Ulid(ulid) => {
-                let ulid_bytes = ulid.0.to_le_bytes();
+                let ulid_bytes = ulid.0.to_bytes();
                 let mut i = 0;
                 while i < ulid_bytes.len() {
                     bytes[i + 1] = ulid_bytes[i];
@@ -598,7 +561,7 @@ impl OkId {
             }
             #[cfg(feature = "uuid")]
             Digest::Uuid(uuid) => {
-                let uuid_bytes = uuid.0.to_le_bytes();
+                let uuid_bytes = uuid.0.to_bytes();
                 let mut i = 0;
                 while i < uuid_bytes.len() {
                     bytes[i + 1] = uuid_bytes[i];
@@ -606,7 +569,7 @@ impl OkId {
                 }
             }
             Digest::Fingerprint(fingerprint) => {
-                let fingerprint_bytes = fingerprint.0.to_le_bytes();
+                let fingerprint_bytes = fingerprint.0.to_bytes();
                 let mut i = 0;
                 while i < fingerprint_bytes.len() {
                     bytes[i + 1] = fingerprint_bytes[i];

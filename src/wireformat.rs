@@ -1,4 +1,5 @@
 use digest::OutputSizeUser;
+use zerocopy::{IntoBytes, U128, U64};
 
 use crate::{BinaryType, Digest, FromDigest, IntoOkId, OkId};
 
@@ -41,13 +42,11 @@ impl jetstream_wireformat::WireFormat for OkId {
             #[cfg(feature = "blake3")]
             Digest::Blake3(blake3) => writer.write_all(&blake3.0)?,
             #[cfg(feature = "ulid")]
-            Digest::Ulid(ulid) => u128::encode(&ulid.0, writer)?,
+            Digest::Ulid(ulid) => writer.write_all(ulid.0.as_bytes())?,
             #[cfg(feature = "uuid")]
-            Digest::Uuid(uuid) => {
-                u128::encode(&uuid.0, writer)?;
-            }
+            Digest::Uuid(uuid) => writer.write_all(uuid.0.as_bytes())?,
             Digest::Fingerprint(fingerprint) => {
-                u64::encode(&fingerprint.0, writer)?;
+                writer.write_all(fingerprint.0.as_bytes())?;
             }
         }
 
@@ -57,12 +56,10 @@ impl jetstream_wireformat::WireFormat for OkId {
     fn decode<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
         let binary_type = u8::decode(reader)?;
         match BinaryType::from(binary_type as char) {
-            BinaryType::Unknown => {
-                Err(std::io::Error::new(
-                    std::io::ErrorKind::InvalidData,
-                    format!("Unknown binary type: {}", binary_type as char),
-                ))
-            }
+            BinaryType::Unknown => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!("Unknown binary type: {}", binary_type as char),
+            )),
             #[cfg(feature = "sha1")]
             BinaryType::Sha1 => {
                 let mut buf = [0; 20];
@@ -104,7 +101,7 @@ impl jetstream_wireformat::WireFormat for OkId {
                 let data = u128::decode(reader)?;
                 Ok(OkId {
                     hash_type: BinaryType::Ulid,
-                    digest: Digest::Ulid(crate::ulid::Ulid(data)),
+                    digest: Digest::Ulid(crate::ulid::Ulid(U128::new(data))),
                 })
             }
             #[cfg(feature = "uuid")]
@@ -112,14 +109,14 @@ impl jetstream_wireformat::WireFormat for OkId {
                 let data = u128::decode(reader)?;
                 Ok(OkId {
                     hash_type: BinaryType::Uuid,
-                    digest: Digest::Uuid(crate::uuid::Uuid(data)),
+                    digest: Digest::Uuid(crate::uuid::Uuid(U128::new(data))),
                 })
             }
             BinaryType::Fingerprint => {
                 let data = u64::decode(reader)?;
                 Ok(OkId {
                     hash_type: BinaryType::Fingerprint,
-                    digest: Digest::Fingerprint(crate::fingerprint::Fingerprint(data)),
+                    digest: Digest::Fingerprint(crate::fingerprint::Fingerprint(U64::new(data))),
                 })
             }
         }

@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use serde::{de::Visitor, ser::SerializeStruct, Deserialize, Serialize};
+use zerocopy::{U128, U64};
 
 use crate::{BinaryType, Digest, OkId};
 
@@ -31,16 +32,16 @@ impl Serialize for OkId {
             }
             #[cfg(feature = "ulid")]
             Digest::Ulid(ulid) => {
-                state.serialize_field("digest", &ulid.0.to_string())?;
+                state.serialize_field("digest", &ulid.0.get().to_string())?;
                 state.end()
             }
             #[cfg(feature = "uuid")]
             Digest::Uuid(uuid) => {
-                state.serialize_field("digest", &uuid.0.to_string())?;
+                state.serialize_field("digest", &uuid.0.get().to_string())?;
                 state.end()
             }
             Digest::Fingerprint(fingerprint) => {
-                state.serialize_field("digest", &fingerprint.0.to_string())?;
+                state.serialize_field("digest", &fingerprint.0.get().to_string())?;
                 state.end()
             }
         }
@@ -95,53 +96,43 @@ impl<'de> Visitor<'de> for OkIdVisitor {
         // Parse digest based on hash_type
         let digest = match hash_type {
             #[cfg(feature = "sha1")]
-            BinaryType::Sha1 => {
-                Digest::Sha1(
-                    crate::sha1::Sha1::from_str(&digest_str)
-                        .map_err(|_| serde::de::Error::custom("Invalid SHA1 digest length"))?,
-                )
-            }
+            BinaryType::Sha1 => Digest::Sha1(
+                crate::sha1::Sha1::from_str(&digest_str)
+                    .map_err(|_| serde::de::Error::custom("Invalid SHA1 digest length"))?,
+            ),
             #[cfg(feature = "sha2")]
-            BinaryType::Sha256 => {
-                Digest::Sha256(
-                    crate::sha2::Sha256::from_str(&digest_str)
-                        .map_err(|_| serde::de::Error::custom("Invalid SHA256 digest length"))?,
-                )
-            }
+            BinaryType::Sha256 => Digest::Sha256(
+                crate::sha2::Sha256::from_str(&digest_str)
+                    .map_err(|_| serde::de::Error::custom("Invalid SHA256 digest length"))?,
+            ),
             #[cfg(feature = "sha3")]
-            BinaryType::Sha3_512 => {
-                Digest::Sha512(
-                    crate::sha3::Sha512::from_str(&digest_str)
-                        .map_err(|_| serde::de::Error::custom("Invalid SHA512 digest length"))?,
-                )
-            }
+            BinaryType::Sha3_512 => Digest::Sha512(
+                crate::sha3::Sha512::from_str(&digest_str)
+                    .map_err(|_| serde::de::Error::custom("Invalid SHA512 digest length"))?,
+            ),
             #[cfg(feature = "blake3")]
-            BinaryType::Blake3 => {
-                Digest::Blake3(
-                    crate::blake3::Blake3::from_str(&digest_str)
-                        .map_err(|_| serde::de::Error::custom("Invalid BLAKE3 digest length"))?,
-                )
-            }
+            BinaryType::Blake3 => Digest::Blake3(
+                crate::blake3::Blake3::from_str(&digest_str)
+                    .map_err(|_| serde::de::Error::custom("Invalid BLAKE3 digest length"))?,
+            ),
             #[cfg(feature = "ulid")]
             BinaryType::Ulid => {
-                Digest::Ulid(crate::ulid::Ulid(digest_str.parse().map_err(|e| {
-                    serde::de::Error::custom(format!("Invalid ULID: {}", e))
-                })?))
+                Digest::Ulid(crate::ulid::Ulid(U128::new(digest_str.parse().map_err(
+                    |e| serde::de::Error::custom(format!("Invalid ULID: {}", e)),
+                )?)))
             }
             #[cfg(feature = "uuid")]
             BinaryType::Uuid => {
-                Digest::Uuid(crate::uuid::Uuid(digest_str.parse().map_err(|e| {
-                    serde::de::Error::custom(format!("Invalid UUID: {}", e))
-                })?))
+                Digest::Uuid(crate::uuid::Uuid(U128::new(digest_str.parse().map_err(
+                    |e| serde::de::Error::custom(format!("Invalid UUID: {}", e)),
+                )?)))
             }
             BinaryType::Unknown => return Err(serde::de::Error::custom("Unknown hash type")),
-            BinaryType::Fingerprint => {
-                Digest::Fingerprint(crate::fingerprint::Fingerprint(
-                    digest_str.parse().map_err(|e| {
-                        serde::de::Error::custom(format!("Invalid fingerprint: {}", e))
-                    })?,
-                ))
-            }
+            BinaryType::Fingerprint => Digest::Fingerprint(crate::fingerprint::Fingerprint(
+                U64::new(digest_str.parse().map_err(|e| {
+                    serde::de::Error::custom(format!("Invalid fingerprint: {}", e))
+                })?),
+            )),
         };
 
         Ok(OkId { hash_type, digest })
