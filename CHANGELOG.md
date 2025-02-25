@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.2](https://github.com/sevki/okid/compare/v0.12.1...v0.12.2) (2025-02-25)
+
+
+### Bug Fixes
+
+* make types implement zerocopy ([9da045c](https://github.com/sevki/okid/commit/9da045c979af7df139b429c4cc13d865bd00c979))
+* Update blake3 repr type ([fbbb693](https://github.com/sevki/okid/commit/fbbb693aa08abe7a2a22f620411f39f4eab33c87))
+
 ## [0.12.1](https://github.com/sevki/okid/compare/v0.12.0...v0.12.1) (2025-02-22)
 
 
