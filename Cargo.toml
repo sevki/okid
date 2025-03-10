@@ -47,7 +47,7 @@ openapi = ["dep:utoipa"]
 graphql = ["dep:async-graphql"]
 
 [dev-dependencies]
-insta = { version = "1.40.0", features = ["yaml"] }
+insta = { version = "1.42.2", features = ["yaml"] }
 
 [[bin]]
 name = "oksecret"
