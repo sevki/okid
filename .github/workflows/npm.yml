@@ -1,0 +1,39 @@
+name: Publish to npm
+
+on:
+  release:
+    types: [created]
+  # Optionally, you can also run on push to specific branches
+  # push:
+  #   branches: [ main ]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build with wasm-pack
+        run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --target web
+
+      - name: Publish to npm
+        working-directory: ./pkg
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

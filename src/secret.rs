@@ -15,6 +15,7 @@
 //! ```
 
 use jetstream_wireformat::WireFormat;
+use wasm_bindgen::prelude::*;
 
 use crate::OkId;
 
@@ -26,6 +27,7 @@ const VS_RANGE_FE_MAX: u32 = 0xFE0F;
 const VS_RANGE_E01_MAX: u32 = 0xE01EF;
 const FE_RANGE_SIZE: u8 = 16;
 
+#[wasm_bindgen]
 impl OkId {
     /// Embed an OkId inside a "secret" emoji using variation selectors
     pub fn display_safe(self) -> String {

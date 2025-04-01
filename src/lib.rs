@@ -4,6 +4,8 @@
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 #![deny(missing_docs)]
 
+use wasm_bindgen::prelude::*;
+
 #[cfg(feature = "openapi")]
 use utoipa::ToSchema;
 #[cfg(feature = "openapi")]
@@ -179,6 +181,7 @@ impl Display for BinaryType {
 #[derive(Clone, Copy, Immutable)]
 #[typeshare(swift = "Codable")]
 #[repr(C)]
+#[wasm_bindgen]
 pub struct OkId {
     hash_type: BinaryType,
     digest: Digest,

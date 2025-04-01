@@ -1,9 +1,11 @@
+use wasm_bindgen::prelude::*;
 use {
     crate::{uint::parse_u128, OkId},
     zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes, LittleEndian, Unaligned, U128},
 };
 #[derive(Copy, Clone, ByteHash, ByteEq, Immutable, IntoBytes, FromBytes, Unaligned)]
 #[repr(C)]
+#[wasm_bindgen]
 pub(super) struct Uuid(pub(super) U128<LittleEndian>);
 
 impl From<uuid::Uuid> for OkId {
@@ -76,5 +78,38 @@ pub(crate) const fn parse_uuid_bytes(bytes: &[u8], start: usize) -> Option<crate
         Some(Uuid(U128::new(num)))
     } else {
         None
+    }
+}
+
+#[wasm_bindgen]
+impl Uuid {
+    /// Create a new UUID from a string representation.
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Self {
+        Uuid(U128::new(uuid::Uuid::new_v4().as_u128()))
+    }
+
+    /// Create a new UUID from a string representation.
+    #[wasm_bindgen]
+    pub fn into_okid(self) -> OkId {
+        OkId {
+            digest: super::Digest::Uuid(self),
+            hash_type: crate::BinaryType::Uuid,
+        }
+    }
+
+    /// Create a new UUID from a string representation.
+    #[wasm_bindgen]
+    pub fn from_string(s: &str) -> Self {
+        let buf = hex::decode(s).unwrap();
+        let mut hash: [u8; 16] = [0; 16];
+        hash.copy_from_slice(&buf);
+        Uuid(U128::new(u128::from_le_bytes(hash)))
+    }
+
+    /// Create a new UUID from a string representation.
+    #[wasm_bindgen]
+    pub fn inner(&self) -> String {
+        self.0.to_string()
     }
 }
