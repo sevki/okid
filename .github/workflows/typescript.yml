@@ -1,11 +1,10 @@
-name: Publish to npm
+name: TypeScript
 
 on:
-  release:
-    types: [created]
-  # Optionally, you can also run on push to specific branches
-  # push:
-  #   branches: [ main ]
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
   build-and-publish:
@@ -32,8 +31,6 @@ jobs:
       - name: Build with wasm-pack
         run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --target web
 
-      - name: Publish to npm
-        working-directory: ./pkg
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Test with deno
+        working-directory: ./ts_tests
+        run: deno index.ts

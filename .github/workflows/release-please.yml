@@ -57,6 +57,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Install wasm-pack
+        if: ${{ steps.release.outputs.release_created }}
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Build with wasm-pack
