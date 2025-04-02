@@ -32,7 +32,7 @@ jobs:
         run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --target web
 
       - name: Test with deno
-        working-directory: ts_tests
+        working-directory: ts_test
         run: |
           npm install
           deno index.ts
