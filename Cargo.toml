@@ -12,7 +12,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 async-graphql = { version = "7.0.15", optional = true }
-blake3 = { version = "1.6.1", optional = true, features = ["traits-preview"]}
+blake3 = { version = "1.8.1", optional = true, features = ["traits-preview"]}
 bytes = { version = "1.10.1", features = ["serde"] }
 getrandom = { version = "0.3.2", features = ["wasm_js"] }
 digest = "0.10.7"
