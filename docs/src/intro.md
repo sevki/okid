@@ -1,6 +1,5 @@
-<img src="https://assets.ok.software/okid.png" align="right" width="200">
 
-# okid
+# 👌🫆 okid
 
 `okid` is a library for generating double clickable representations of various types of data,
 such as `sha1` hashes, `uuid`s and more.
