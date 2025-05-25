@@ -6,6 +6,11 @@
 
 use wasm_bindgen::prelude::*;
 
+#[cfg(feature = "openapi")]
+use utoipa::{
+    openapi::{schema::SchemaType, SchemaFormat, Type as UType},
+    PartialSchema, ToSchema,
+};
 use {
     ::serde::Serialize,
     digest::OutputSizeUser,
@@ -13,15 +18,9 @@ use {
     std::{fmt::Display, hash::Hash, str::FromStr},
     zerocopy::{Immutable, IntoBytes, KnownLayout, Unaligned},
 };
-#[cfg(feature = "openapi")]
-use utoipa::{
-        openapi::{schema::SchemaType, SchemaFormat, Type as UType},
-        PartialSchema, ToSchema,
-    };
 
 #[cfg(feature = "json")]
 use serde_json::json;
-
 
 /// Separator character for the OkId string representation
 pub const SEPARATOR: char = 'ː';
@@ -65,19 +64,13 @@ pub mod uuid;
 
 mod serde;
 
-#[cfg(not(target_arch = "wasm32"))]
-/// UniFFI bindings for Swift/Kotlin/Python
-pub mod uniffi_bindings;
-
-#[cfg(not(target_arch = "wasm32"))]
-uniffi::setup_scaffolding!();
-
 #[derive(Copy, Clone, Debug, Serialize, Immutable, Unaligned, IntoBytes)]
 #[repr(u8)]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum BinaryType {
     // Unknown
     Unknown = 0,
+    #[allow(deprecated)]
     #[cfg(feature = "sha1")]
     // Next bit means the size of the digest is of sha1 type
     Sha1 = 1 << 0,
@@ -105,6 +98,7 @@ impl FromStr for BinaryType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            #[allow(deprecated)]
             #[cfg(feature = "sha1")]
             "sha1" => Ok(Self::Sha1),
             #[cfg(feature = "sha2")]
@@ -191,7 +185,6 @@ impl Display for BinaryType {
 #[derive(Clone, Copy, Immutable)]
 #[repr(C)]
 #[wasm_bindgen]
-#[cfg_attr(not(target_arch = "wasm32"), derive(uniffi::Object))]
 pub struct OkId {
     hash_type: BinaryType,
     digest: Digest,
@@ -349,6 +342,7 @@ impl Hash for OkId {
             #[cfg(feature = "sha1")]
             Digest::Sha1(d) => {
                 state.write_u8(b'1');
+                #[allow(deprecated)]
                 d.0.hash(state);
             }
             #[cfg(feature = "sha2")]
@@ -479,6 +473,7 @@ fn parse_okid(s: &str) -> Result<OkId, Error> {
 #[repr(C)]
 enum Digest {
     #[cfg(feature = "sha1")]
+    #[allow(deprecated)]
     Sha1(crate::sha1::Sha1),
     #[cfg(feature = "sha2")]
     Sha256(crate::sha2::Sha256),
@@ -597,6 +592,7 @@ impl OkId {
         match self.digest {
             #[cfg(feature = "sha1")]
             Digest::Sha1(sha1) => {
+                #[allow(deprecated)]
                 let sha1_bytes = sha1.0;
                 let mut i = 0;
                 while i < sha1_bytes.len() {
@@ -712,6 +708,7 @@ const fn parse_okid_bytes(bytes: &[u8]) -> Option<OkId> {
 
     // Process remaining bytes based on hash type
     match hash_type {
+        #[allow(deprecated)]
         #[cfg(feature = "sha1")]
         BinaryType::Sha1 => {
             if bytes.len() != content_start + 40 {
