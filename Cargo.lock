@@ -1301,7 +1301,6 @@ dependencies = [
  "thiserror 2.0.12",
  "ulid",
  "uniffi",
- "uniffi_macros",
  "utoipa",
  "uuid",
  "wasm-bindgen",
@@ -2096,9 +2095,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4dcd1d240101ba3b9d7532ae86d9cb64d9a7ff63e13a2b7b9e94a32a601d8233"
 dependencies = [
  "anyhow",
- "camino",
  "cargo_metadata",
- "clap",
  "uniffi_bindgen",
  "uniffi_build",
  "uniffi_core",

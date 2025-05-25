@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use {
     super::{BinaryType, Digest, IntoOkId, OkId},
     crate::hex_to_byte,

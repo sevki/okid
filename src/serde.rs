@@ -12,6 +12,7 @@ impl Serialize for OkId {
         match self.digest {
             #[cfg(feature = "sha1")]
             Digest::Sha1(sha1) => {
+                #[allow(deprecated)]
                 state.serialize_field("digest", hex::encode(sha1.0).as_str())?;
                 state.end()
             }
@@ -97,6 +98,7 @@ impl<'de> Visitor<'de> for OkIdVisitor {
         let digest = match hash_type {
             #[cfg(feature = "sha1")]
             BinaryType::Sha1 => Digest::Sha1(
+                #[allow(deprecated)]
                 crate::sha1::Sha1::from_str(&digest_str)
                     .map_err(|_| serde::de::Error::custom("Invalid SHA1 digest length"))?,
             ),
