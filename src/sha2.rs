@@ -2,11 +2,13 @@ use {
     crate::{hex_to_byte, OkId},
     sha2::Digest,
     std::{fmt::Display, str::FromStr},
+    wasm_bindgen::prelude::*,
     zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes, Unaligned},
 };
 
 #[derive(Copy, Clone, Debug, ByteEq, Immutable, IntoBytes, ByteHash, FromBytes, Unaligned)]
 #[repr(C)]
+#[wasm_bindgen]
 pub(super) struct Sha256(pub(crate) [u8; 32]);
 
 impl From<sha2::Sha256> for OkId {
@@ -75,4 +77,31 @@ pub(crate) const fn parse_sha256_bytes(bytes: &[u8], start: usize) -> Option<cra
         i += 2;
     }
     Some(crate::sha2::Sha256(result))
+}
+
+#[wasm_bindgen]
+impl Sha256 {
+    /// Create a new Sha256 instance from a byte array.
+    #[wasm_bindgen(constructor)]
+    #[allow(unused)]
+    pub fn new(bytes: &[u8]) -> Self {
+        if bytes.len() != 32 {
+            panic!(
+                "Sha256 must be initialized with exactly 32 bytes, got {}",
+                bytes.len()
+            );
+        }
+        let mut hash: [u8; 32] = [0; 32];
+        hash.copy_from_slice(bytes);
+        Sha256(hash)
+    }
+
+    #[wasm_bindgen(js_name = intoOkId)]
+    #[allow(unused)]
+    pub fn into_okid(self) -> OkId {
+        OkId {
+            hash_type: super::BinaryType::Sha256,
+            digest: super::Digest::Sha256(self),
+        }
+    }
 }

@@ -85,12 +85,14 @@ pub(crate) const fn parse_uuid_bytes(bytes: &[u8], start: usize) -> Option<crate
 impl Uuid {
     /// Create a new UUID from a string representation.
     #[wasm_bindgen(constructor)]
+    #[allow(unused)]
     pub fn new() -> Self {
         Uuid(U128::new(uuid::Uuid::new_v4().as_u128()))
     }
 
     /// Create a new UUID from a string representation.
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = intoOkId)]
+    #[allow(unused)]
     pub fn into_okid(self) -> OkId {
         OkId {
             digest: super::Digest::Uuid(self),
@@ -99,7 +101,8 @@ impl Uuid {
     }
 
     /// Create a new UUID from a string representation.
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = fromString)]
+    #[allow(unused)]
     pub fn from_string(s: &str) -> Self {
         let buf = hex::decode(s).unwrap();
         let mut hash: [u8; 16] = [0; 16];
@@ -109,6 +112,7 @@ impl Uuid {
 
     /// Create a new UUID from a string representation.
     #[wasm_bindgen]
+    #[allow(unused)]
     pub fn inner(&self) -> String {
         self.0.to_string()
     }

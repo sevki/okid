@@ -6,22 +6,22 @@
 
 use wasm_bindgen::prelude::*;
 
-#[cfg(feature = "openapi")]
-use utoipa::ToSchema;
-#[cfg(feature = "openapi")]
-use utoipa::{
-    openapi::{schema::SchemaType, SchemaFormat, Type as UType},
-    PartialSchema,
-};
 use {
     ::serde::Serialize,
     digest::OutputSizeUser,
     okstd::impls,
-    serde_json::json,
     std::{fmt::Display, hash::Hash, str::FromStr},
-    typeshare::typeshare,
     zerocopy::{Immutable, IntoBytes, KnownLayout, Unaligned},
 };
+#[cfg(feature = "openapi")]
+use utoipa::{
+        openapi::{schema::SchemaType, SchemaFormat, Type as UType},
+        PartialSchema, ToSchema,
+    };
+
+#[cfg(feature = "json")]
+use serde_json::json;
+
 
 /// Separator character for the OkId string representation
 pub const SEPARATOR: char = 'ː';
@@ -43,6 +43,10 @@ pub mod macros;
 pub mod blake3;
 /// fingerprint module
 pub mod fingerprint;
+#[deprecated(
+    since = "0.14.0",
+    note = "Sha1 is not considered secure anymore, use sha2 or sha3 instead"
+)]
 #[cfg(feature = "sha1")]
 /// sha1 module
 pub mod sha1;
@@ -61,9 +65,15 @@ pub mod uuid;
 
 mod serde;
 
+#[cfg(not(target_arch = "wasm32"))]
+/// UniFFI bindings for Swift/Kotlin/Python
+pub mod uniffi_bindings;
+
+#[cfg(not(target_arch = "wasm32"))]
+uniffi::setup_scaffolding!();
+
 #[derive(Copy, Clone, Debug, Serialize, Immutable, Unaligned, IntoBytes)]
 #[repr(u8)]
-#[typeshare(swift = "Codable")]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum BinaryType {
     // Unknown
@@ -179,12 +189,82 @@ impl Display for BinaryType {
 
 /// OkId is a double clickable representation of arbitrary binary data
 #[derive(Clone, Copy, Immutable)]
-#[typeshare(swift = "Codable")]
 #[repr(C)]
 #[wasm_bindgen]
+#[cfg_attr(not(target_arch = "wasm32"), derive(uniffi::Object))]
 pub struct OkId {
     hash_type: BinaryType,
     digest: Digest,
+}
+
+#[wasm_bindgen]
+impl OkId {
+    /// Parse an OkId from a string
+    #[wasm_bindgen(js_name = fromString)]
+    pub fn from_string(s: &str) -> Result<OkId, JsValue> {
+        OkId::from_str(s).map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    /// Convert the OkId to a string
+    #[wasm_bindgen(js_name = toString)]
+    pub fn js_to_string(&self) -> String {
+        format!("{}", self)
+    }
+
+    /// Get the hash type as a string
+    #[wasm_bindgen(js_name = hashType)]
+    pub fn hash_type(&self) -> String {
+        self.hash_type.to_string()
+    }
+
+    /// Convert to path-safe format
+    #[wasm_bindgen(js_name = toPathSafe)]
+    pub fn to_path_safe(&self) -> String {
+        pathsafe(*self)
+    }
+
+    /// Create an OkId from a SHA256 hash
+    #[cfg(feature = "sha2")]
+    #[wasm_bindgen(js_name = fromSha256)]
+    pub fn from_sha256(data: &[u8]) -> OkId {
+        use digest::Digest;
+        let mut hasher = ::sha2::Sha256::new();
+        hasher.update(data);
+        hasher.into()
+    }
+
+    /// Create an OkId from a Blake3 hash
+    #[cfg(feature = "blake3")]
+    #[wasm_bindgen(js_name = fromBlake3)]
+    pub fn from_blake3(data: &[u8]) -> OkId {
+        let mut hasher = ::blake3::Hasher::new();
+        hasher.update(data);
+        hasher.into()
+    }
+
+    /// Create a new UUID-based OkId
+    #[cfg(feature = "uuid")]
+    #[wasm_bindgen(js_name = newUuid)]
+    pub fn new_uuid() -> OkId {
+        ::uuid::Uuid::new_v4().into()
+    }
+
+    /// Create a new ULID-based OkId
+    #[cfg(feature = "ulid")]
+    #[wasm_bindgen(js_name = newUlid)]
+    pub fn new_ulid() -> OkId {
+        ::ulid::Ulid::new().into()
+    }
+
+    /// Create a fingerprint OkId from data
+    #[wasm_bindgen(js_name = fingerprint)]
+    pub fn fingerprint(data: &[u8]) -> OkId {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        let mut hasher = DefaultHasher::new();
+        data.hash(&mut hasher);
+        hasher.finish().into()
+    }
 }
 
 #[cfg(feature = "graphql")]
@@ -395,8 +475,6 @@ fn parse_okid(s: &str) -> Result<OkId, Error> {
 
 /// Digest of the binary identifier
 #[derive(Debug, Clone, Copy, Immutable, KnownLayout)]
-#[typeshare(swift = "Equatable, Codable, Comparable, Hashable")]
-#[typeshare(serialized_as = "String")]
 #[impls(Immutable, IntoBytes, Hash, zerocopy::FromBytes, Unaligned, Eq)]
 #[repr(C)]
 enum Digest {

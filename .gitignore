@@ -1,3 +1,5 @@
-docs/book
+book
+docs/src/swift
+docs/src/typescript
 /target
 .build

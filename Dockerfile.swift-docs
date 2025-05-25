@@ -1,0 +1,80 @@
+# Multi-stage Dockerfile for building and testing Swift package
+
+# Stage 1: Build Rust library
+FROM rust:latest AS rust-builder
+
+WORKDIR /build
+
+# Copy everything
+COPY . .
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/tmp/sccache,sharing=locked \
+    cargo build --release
+
+# Stage 2: Swift test environment  
+FROM swift:latest
+
+WORKDIR /workspace
+
+# Create target/release directory structure to match Package.swift expectations
+RUN mkdir -p target/release
+
+# Copy the built Rust library to expected location
+COPY --from=rust-builder /build/target/release/libokid.so ./target/release/
+COPY --from=rust-builder /build/target/release/libokid.a ./target/release/
+
+# Copy Swift package files
+COPY Package.swift ./
+COPY Sources ./Sources
+COPY Tests ./Tests
+
+# Set library path and build flags for Swift Package Manager
+ENV LD_LIBRARY_PATH=/workspace:/workspace/target/release
+ENV LIBRARY_PATH=/workspace/target/release
+ENV C_INCLUDE_PATH=/workspace/Sources/OkId/include
+ENV CPLUS_INCLUDE_PATH=/workspace/Sources/OkId/include
+
+# Compile the Swift module first using swiftc with testing enabled
+RUN swiftc \
+    -module-name OkId \
+    -emit-library -o libOkId.dylib \
+    -emit-module -emit-module-path ./ \
+    -parse-as-library \
+    -enable-testing \
+    -L ./target/release/ \
+    -lokid \
+    -Xcc -fmodule-map-file=Sources/OkId/include/okidFFI.modulemap \
+    -I Sources/OkId/include \
+    Sources/OkId/OkId.swift Sources/OkId/OkIdTypes.swift
+
+# Create a script to handle documentation generation and copying
+RUN echo '#!/bin/bash\n\
+set -e\n\
+echo "Generating Swift documentation..."\n\
+# Generate docs in a temporary directory\n\
+docc convert Sources/OkId/Documentation.docc \
+    --fallback-display-name OkId \
+    --fallback-bundle-identifier dev.branch.dt.okid \
+    --output-path /tmp/swift-docs \
+    --hosting-base-path okid/swift \
+    --transform-for-static-hosting\n\
+echo "Documentation generated in temp directory"\n\
+ls -la /tmp/swift-docs/ | head -20\n\
+echo "Copying to output directory..."\n\
+# Ensure output directory exists\n\
+mkdir -p /output/docs/src/swift\n\
+# Copy the generated files to the mounted volume\n\
+cp -r /tmp/swift-docs/* /output/docs/src/swift/ || {\n\
+    echo "Failed to copy, trying with different permissions..."\n\
+    chmod -R 777 /tmp/swift-docs\n\
+    cp -r /tmp/swift-docs/* /output/docs/src/swift/\n\
+}\n\
+echo "Documentation copied successfully!"\n\
+ls -la /output/docs/src/swift/ | head -20\n\
+# Ensure proper permissions\n\
+chmod -R 755 /output/docs/src/swift/ 2>/dev/null || true\n\
+' > /generate-docs.sh && chmod +x /generate-docs.sh
+
+# Set the script as the entrypoint
+ENTRYPOINT ["/generate-docs.sh"]
