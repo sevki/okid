@@ -84,7 +84,7 @@ fn generate_swift_bindings(sh: &Shell) -> Result<()> {
     
     // Make it executable and run
     cmd!(sh, "chmod +x {script_path}").run()?;
-    cmd!(sh, "sh {script_path}").run()?;
+    cmd!(sh, "bash {script_path}").run()?;
     
     // Clean up temp file
     sh.remove_path(&script_path)?;
