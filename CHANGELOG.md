@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.15.0](https://github.com/sevki/okid/compare/v0.14.0...v0.15.0) (2025-05-25)
+
+
+### Features
+
+* swift and typescript bindings ([94693c5](https://github.com/sevki/okid/commit/94693c555c23dc8d3ee3ce90c24218537fb00cd6))
+* ts_tests ([8238be9](https://github.com/sevki/okid/commit/8238be9acb7ae22670d5715e5119d98a85559bac))
+* ts_tests ([fd6e766](https://github.com/sevki/okid/commit/fd6e7662a3ec0c9c0320a41a9d195f9aa7d402cc))
+
 ## [0.14.0](https://github.com/sevki/okid/compare/v0.13.0...v0.14.0) (2025-04-02)
 
 
