@@ -106,7 +106,7 @@ jobs:
           
           # Run the container to generate documentation
           docker run --rm \
-            -v ${{ github.workspace }}/docs/src/swift:/output/docs/swift \
+            -v ${{ github.workspace }}/docs/src/swift:/output/docs/src/swift \
             okid-swift-docs
           
           # Verify documentation was generated
