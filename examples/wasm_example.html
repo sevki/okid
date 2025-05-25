@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OkId WASM Example</title>
+</head>
+<body>
+    <h1>OkId WASM Example</h1>
+    <div>
+        <h2>Create OkIds</h2>
+        <input type="text" id="input" value="Hello, World!" />
+        <button onclick="createIds()">Create IDs</button>
+        <div id="results"></div>
+    </div>
+
+    <script type="module">
+        import init, { OkId } from '../pkg/okid.js';
+
+        async function run() {
+            await init();
+            window.OkId = OkId;
+        }
+
+        window.createIds = function() {
+            const input = document.getElementById('input').value;
+            const encoder = new TextEncoder();
+            const data = encoder.encode(input);
+            
+            const results = document.getElementById('results');
+            results.innerHTML = '';
+            
+            // Create SHA256 OkId
+            const sha256Id = OkId.fromSha256(data);
+            results.innerHTML += `<p>SHA256: ${sha256Id.toString()}</p>`;
+            
+            // Create Blake3 OkId
+            const blake3Id = OkId.fromBlake3(data);
+            results.innerHTML += `<p>Blake3: ${blake3Id.toString()}</p>`;
+            
+            // Create fingerprint
+            const fingerprintId = OkId.fingerprint(data);
+            results.innerHTML += `<p>Fingerprint: ${fingerprintId.toString()}</p>`;
+            
+            // Create UUID
+            const uuidId = OkId.newUuid();
+            results.innerHTML += `<p>UUID: ${uuidId.toString()}</p>`;
+            
+            // Create ULID
+            const ulidId = OkId.newUlid();
+            results.innerHTML += `<p>ULID: ${ulidId.toString()}</p>`;
+            
+            // Parse and convert to path-safe
+            const parsed = OkId.fromString(sha256Id.toString());
+            results.innerHTML += `<p>Path-safe: ${parsed.toPathSafe()}</p>`;
+        }
+
+        run();
+    </script>
+</body>
+</html>

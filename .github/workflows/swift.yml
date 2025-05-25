@@ -11,11 +11,110 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    strategy:
+      matrix:
+        os: [macos-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
-      - name: Build
-        run: swift build -v
-      - name: Run tests
-        run: swift test -v
+      
+      # Docker setup for Linux only
+      - name: Set up Docker Buildx
+        if: runner.os == 'Linux'
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Cache Docker layers
+        if: runner.os == 'Linux'
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-swift-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-swift-
+      
+      # macOS: Install Rust
+      - name: Install Rust
+        if: runner.os == 'macOS'
+        uses: dtolnay/rust-toolchain@stable
+      
+      # macOS: Cache cargo
+      - name: Cache cargo dependencies
+        if: runner.os == 'macOS'
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      
+      # macOS: Build and test natively
+      - name: Build and test Swift on macOS
+        if: runner.os == 'macOS'
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/target/release
+          LIBRARY_PATH: ${{ github.workspace }}/target/release
+          C_INCLUDE_PATH: ${{ github.workspace }}/target/release/include
+          CPLUS_INCLUDE_PATH: ${{ github.workspace }}/target/release/include
+        run: |
+          cargo xtask swift
+           # Install Swift Testing package first
+          git clone https://github.com/swiftlang/swift-testing.git && \
+              cd swift-testing && \
+              git checkout swift-6.1.1-RELEASE && \
+              swift build && \
+          
+          cd ${{ github.workspace }}
+
+          swiftc \
+            -module-name OkId \
+            -emit-library -o libOkId.dylib \
+            -emit-module -emit-module-path ./ \
+            -parse-as-library \
+            -enable-testing \
+            -L ./target/release/ \
+            -lokid \
+            -Xcc -fmodule-map-file=Sources/OkId/include/okidFFI.modulemap \
+            -I Sources/OkId/include \
+            Sources/OkId/OkId.swift Sources/OkId/OkIdTypes.swift
+
+          swiftc \
+            -I . \
+            -I Sources/OkId/include \
+            -I swift-testing/.build/release \
+            -L swift-testing/.build/release \
+            -L ./target/release/ \
+            -enable-testing \
+            libOkId.dylib \
+            -lokid \
+            -Xcc -fmodule-map-file=Sources/OkId/include/okidFFI.modulemap \
+            Tests/OkIdTests/OkIdTests.swift \
+            -o test_runner && \
+            echo "Test compilation successful!"
+          
+          # Run the test
+          ./test_runner
+      
+      # Linux: Build and test using Docker
+      - name: Build and test Swift using Docker
+        if: runner.os == 'Linux'
+        run: |
+          # Build Docker image for Swift tests
+          docker buildx build \
+            --cache-from type=local,src=/tmp/.buildx-cache \
+            --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
+            -f Dockerfile.swift-test \
+            -t okid-swift-test \
+            --load \
+            .
+          
+          # Run the tests in the container
+          echo "Running Swift tests in Docker..."
+          docker run --rm okid-swift-test
+          
+          # Move cache
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache || true

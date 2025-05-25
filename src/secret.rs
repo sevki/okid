@@ -30,6 +30,7 @@ const FE_RANGE_SIZE: u8 = 16;
 #[wasm_bindgen]
 impl OkId {
     /// Embed an OkId inside a "secret" emoji using variation selectors
+    #[wasm_bindgen(js_name = displaySafe)]
     pub fn display_safe(self) -> String {
         let mut bytes = vec![];
         self.encode(&mut bytes).unwrap();
@@ -44,14 +45,12 @@ impl OkId {
     }
 
     /// Helper function to decode a display_safe encoded OkId
+    #[wasm_bindgen(js_name = fromDisplaySafe)]
     pub fn from_display_safe(s: &str) -> Option<Self> {
         let bytes = decode_variation_selectors(s)?;
 
         // Use from_bytes to avoid length mismatch issues
-        match WireFormat::decode(&mut bytes.as_slice()) {
-            Ok(okid) => Some(okid),
-            Err(_) => None,
-        }
+        WireFormat::decode(&mut bytes.as_slice()).ok()
     }
 }
 

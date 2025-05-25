@@ -1,0 +1,63 @@
+# Rust build artifacts
+target/
+
+# Swift build artifacts
+.build/
+*.swiftmodule
+*.dylib
+*.so
+*.a
+Package.resolved
+
+# Git and version control
+.git/
+.gitignore
+
+# Docker files
+Dockerfile*
+.dockerignore
+
+# CI/CD
+.github/
+
+# Documentation
+docs/
+book.toml
+# Keep README.md as it's needed by lib.rs
+# *.md
+
+# Node.js artifacts
+node_modules/
+*.log
+npm-debug.log*
+
+# WebAssembly artifacts
+pkg/
+*.wasm
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+ts_test/node_modules/
+ts_test/pnpm-lock.yaml
+
+# Release artifacts
+release-please-config.json
+
+# Examples (not needed for building)
+examples/
+
+# Generated files
+generate_swift_bindings.sh
+swift-docker.sh
+run-tests.sh
+libokid.*

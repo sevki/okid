@@ -1,0 +1,25 @@
+{
+  "entryPoints": ["./pkg/okid.d.ts"],
+  "out": "./docs/typescript",
+  "name": "OkId TypeScript API",
+  "readme": "./README.md",
+  "navigationLinks": {
+    "GitHub": "https://github.com/sevki/okid",
+    "npm": "https://www.npmjs.com/package/okid"
+  },
+  "includeVersion": true,
+  "searchInComments": true,
+  "searchInDocuments": true,
+  "theme": "default",
+  "githubPages": false,
+  "hideGenerator": false,
+  "categorizeByGroup": true,
+  "categoryOrder": ["*", "Other"],
+  "sort": ["required-first", "alphabetical"],
+  "visibilityFilters": {
+    "protected": false,
+    "private": false,
+    "inherited": true,
+    "external": false
+  }
+}

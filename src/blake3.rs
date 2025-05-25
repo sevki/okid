@@ -1,6 +1,7 @@
 use {
     crate::{hex_to_byte, BinaryType, Digest, IntoOkId, OkId},
     std::fmt::Display,
+    wasm_bindgen::prelude::*,
     zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes, Unaligned},
 };
 
@@ -18,6 +19,7 @@ use {
     Unaligned,
 )]
 #[repr(C)]
+#[wasm_bindgen]
 pub(super) struct Blake3(pub(super) [u8; BLAKE3_LEN]);
 
 const BLAKE3_LEN: usize = 32;

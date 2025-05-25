@@ -1,0 +1,78 @@
+# Multi-stage Dockerfile for building and testing Swift package
+
+# Stage 1: Build Rust library
+FROM rust:latest AS rust-builder
+
+WORKDIR /build
+
+# Copy everything
+COPY . .
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/tmp/sccache,sharing=locked \
+    cargo build --release
+
+# Stage 2: Swift test environment  
+FROM swift:latest
+
+WORKDIR /workspace
+
+# Create target/release directory structure to match Package.swift expectations
+RUN mkdir -p target/release
+
+# Copy the built Rust library to expected location
+COPY --from=rust-builder /build/target/release/libokid.so ./target/release/
+COPY --from=rust-builder /build/target/release/libokid.a ./target/release/
+
+# Copy Swift package files
+COPY Package.swift ./
+COPY Sources ./Sources
+COPY Tests ./Tests
+
+# Set library path for both current dir and target/release
+ENV LD_LIBRARY_PATH=/workspace:/workspace/target/release
+ENV LIBRARY_PATH=/workspace/target/release
+ENV C_INCLUDE_PATH=/workspace/Sources/OkId/include
+ENV CPLUS_INCLUDE_PATH=/workspace/Sources/OkId/include
+
+# Compile the Swift module first using swiftc with testing enabled
+RUN swiftc \
+    -module-name OkId \
+    -emit-library -o libOkId.dylib \
+    -emit-module -emit-module-path ./ \
+    -parse-as-library \
+    -enable-testing \
+    -L ./target/release/ \
+    -lokid \
+    -Xcc -fmodule-map-file=Sources/OkId/include/okidFFI.modulemap \
+    -I Sources/OkId/include \
+    Sources/OkId/OkId.swift Sources/OkId/OkIdTypes.swift
+
+# Check if module was compiled successfully
+RUN ls -la *.swiftmodule || echo "No swiftmodule found" && \
+    ls -la lib* || echo "No libraries found"
+
+# Install Swift Testing package first
+RUN git clone https://github.com/swiftlang/swift-testing.git && \
+    cd swift-testing && \
+    git checkout swift-6.1.1-RELEASE && \
+    swift build && \
+    cd ..
+
+# Compile and run tests manually, linking against the compiled Swift module and Swift Testing
+RUN swiftc \
+    -I . \
+    -I Sources/OkId/include \
+    -I swift-testing/.build/release \
+    -L ./target/release/ \
+    -L swift-testing/.build/release \
+    libOkId.dylib \
+    -lokid \
+    -lTesting \
+    -Xcc -fmodule-map-file=Sources/OkId/include/okidFFI.modulemap \
+    Tests/OkIdTests/OkIdTests.swift \
+    -o test_runner && \
+    echo "Test compilation successful!"
+
+# Run the compiled tests with verbose output
+CMD ["sh", "-c", "echo 'Running tests...' && ./test_runner --verbose && echo 'Tests completed!'"]

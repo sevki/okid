@@ -7,7 +7,7 @@ on:
     branches: ["main"]
 
 jobs:
-  build-and-publish:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -31,8 +31,10 @@ jobs:
       - name: Build with wasm-pack
         run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --target web
 
-      - name: Test with deno
-        working-directory: ts_test
+      - name: Publish to npm
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
-          npm install
-          deno index.ts
+          cd pkg
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

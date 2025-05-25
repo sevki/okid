@@ -1,2 +1,2 @@
-[build]
-RUSTFLAGS='--cfg getrandom_backend="wasm_js"'
+[alias]
+xtask = "run --package xtask --"
