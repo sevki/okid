@@ -12,7 +12,7 @@ impl jetstream_wireformat::WireFormat for OkId {
             // digest length
         + match self.digest {
             #[cfg(feature = "sha1")]
-            Digest::Sha1(sha1) => sha1.0.len() as u32,
+            #[allow(deprecated)]Digest::Sha1(sha1) => sha1.0.len() as u32,
             #[cfg(feature = "sha2")]
             Digest::Sha256(sha256) => sha256.0.len() as u32,
             #[cfg(feature = "sha3")]
@@ -34,6 +34,7 @@ impl jetstream_wireformat::WireFormat for OkId {
 
         match &self.digest {
             #[cfg(feature = "sha1")]
+            #[allow(deprecated)]
             Digest::Sha1(sha1) => writer.write_all(&sha1.0)?,
             #[cfg(feature = "sha2")]
             Digest::Sha256(sha256) => writer.write_all(&sha256.0)?,
@@ -66,6 +67,7 @@ impl jetstream_wireformat::WireFormat for OkId {
                 reader.read_exact(&mut buf)?;
                 Ok(OkId {
                     hash_type: BinaryType::Sha1,
+                    #[allow(deprecated)]
                     digest: Digest::Sha1(crate::sha1::Sha1(buf)),
                 })
             }
