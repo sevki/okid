@@ -3,3 +3,6 @@ authors = ["sevki"]
 language = "en"
 multilingual = false
 src = "docs/src"
+
+[output.html]
+additional-css = ["theme/book.css"]

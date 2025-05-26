@@ -1,0 +1,219 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:ital,wght@0,200..800;1,200..800&family=Atkinson+Hyperlegible+Next:ital,wght@0,200..800;1,200..800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Inclusive+Sans:ital@0;1&display=swap');
+
+/* Simple custom theme overrides */
+:root {
+    --bg: #ffffff;
+    --fg: #333333;
+    --sidebar-bg: #f7f7f7;
+    --sidebar-fg: #333333;
+    --sidebar-active: #008cff;
+    --scrollbar: #cccccc;
+    --icons: #666666;
+    --icons-hover: #333333;
+    --links: #0066cc;
+    --inline-code-color: #666666;
+    --theme-popup-bg: #f7f7f7;
+    --theme-popup-border: #e0e0e0;
+    --theme-hover: #e6e6e6;
+    --quote-bg: #f5f5f5;
+    --quote-border: #e0e0e0;
+    --table-border-color: #e0e0e0;
+    --table-header-bg: #f5f5f5;
+    --table-alternate-bg: #fafafa;
+    --searchbar-border-color: #e0e0e0;
+    --searchbar-bg: #ffffff;
+    --searchbar-fg: #333333;
+    --searchbar-shadow-color: #d4d4d4;
+    --searchresults-header-fg: #666666;
+    --searchresults-border-color: #e0e0e0;
+    --searchresults-li-bg: #f5f5f5;
+    --search-mark-bg: #ffeb3b;
+}
+
+/* Use Atkinson Hyperlegible fonts */
+body {
+    font-family: "Atkinson Hyperlegible", "Atkinson Hyperlegible Next", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    line-height: 1.6;
+}
+
+/* Improved code blocks with Atkinson Hyperlegible Mono */
+code {
+    font-family: "Atkinson Hyperlegible Mono", "SF Mono", Monaco, monospace;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 0.875em;
+    background-color: #f5f5f5;
+    border-radius: 3px;
+}
+
+pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+pre {
+    background-color: #f8f8f8;
+    border: none;
+    border-radius: 4px;
+    padding: 0.2em 0.4em;
+    /* padding: 1em; */
+    overflow-x: auto;
+}
+
+/* Remove borders from mdBook's default code styling */
+.hljs {
+    border: none !important;
+}
+
+pre.hljs {
+    border: none !important;
+}
+
+/* Better tables */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+table th {
+    background-color: var(--table-header-bg);
+    font-weight: 700;
+    text-align: left;
+    padding: 0.75em;
+}
+
+table td {
+    padding: 0.75em;
+    border: 1px solid var(--table-border-color);
+}
+
+table tr:nth-child(even) {
+    background-color: var(--table-alternate-bg);
+}
+
+/* Improved sidebar */
+.sidebar {
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid #e0e0e0;
+}
+
+.chapter li a {
+    padding: 0.5em 1em;
+    display: block;
+    text-decoration: none;
+    color: var(--sidebar-fg);
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.chapter li a:hover {
+    background-color: var(--theme-hover);
+}
+
+.chapter li a.active {
+    background-color: #e3f2fd;
+    color: var(--sidebar-active);
+    font-weight: 500;
+}
+
+/* Clean buttons */
+.nav-chapters {
+    font-size: 2em;
+    color: var(--icons);
+    transition: color 0.2s;
+}
+
+.nav-chapters:hover {
+    color: var(--icons-hover);
+    text-decoration: none;
+}
+
+/* Better search */
+#searchbar {
+    border: 1px solid var(--searchbar-border-color);
+    border-radius: 4px;
+    padding: 0.5em;
+    width: 100%;
+    font-size: 0.875em;
+}
+
+.searchresults-outer {
+    border: 1px solid var(--searchresults-border-color);
+    border-radius: 4px;
+    margin-top: 0.5em;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Clean headings with proper font weights */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.25;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+h1 {
+    font-size: 2em;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 0.3em;
+}
+
+h2 {
+    font-size: 1.5em;
+}
+
+h3 {
+    font-size: 1.25em;
+}
+
+/* Better links */
+a {
+    color: var(--links);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Improved content width */
+.content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1em;
+}
+
+/* Better blockquotes */
+blockquote {
+    margin: 1em 0;
+    padding: 0.5em 1em;
+    background-color: var(--quote-bg);
+    border-left: 4px solid var(--quote-border);
+    font-style: italic;
+}
+
+/* Strong text should use bold weight */
+strong, b {
+    font-weight: 700;
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 768px) {
+    .content {
+        padding: 0 0.5em;
+    }
+    
+    table {
+        font-size: 0.875em;
+    }
+    
+    pre {
+        padding: 0.5em;
+    }
+}
