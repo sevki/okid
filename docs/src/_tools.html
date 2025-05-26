@@ -37,13 +37,29 @@
         }
     }
 
-    window.createHashes = function () {
-        const input = document.getElementById('hashInput').value;
-        const encoder = new TextEncoder();
-        const data = encoder.encode(input);
+    window.createHashes = async function () {
+        const textInput = document.getElementById('hashInput').value;
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        
+        if (file) {
+            // Use file if selected
+            const arrayBuffer = await file.arrayBuffer();
+            const data = new Uint8Array(arrayBuffer);
+            displayHashes(data, file.name);
+        } else if (textInput) {
+            // Use text input
+            const encoder = new TextEncoder();
+            const data = encoder.encode(textInput);
+            displayHashes(data, textInput);
+        } else {
+            alert('Please enter text or select a file');
+        }
+    }
 
+    window.displayHashes = function (data, source) {
         const results = document.getElementById('hashResults');
-
+        
         // Create hashes
         const sha256Id = OkId.fromSha256(data);
         const blake3Id = OkId.fromBlake3(data);
@@ -55,6 +71,7 @@
                 <table class="w-full">
                     <thead>
                         <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Content</th>
                             <th class="text-left py-3 px-4 font-semibold text-gray-700">Type</th>
                             <th class="text-left py-3 px-4 font-semibold text-gray-700">ID</th>
                             <th class="text-center py-3 px-4 font-semibold text-gray-700">Action</th>
@@ -62,6 +79,7 @@
                     </thead>
                     <tbody>
                         <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-3 px-4 text-sm text-gray-600" rowspan="3">${source}</td>
                             <td class="py-3 px-4 font-medium text-gray-600">SHA256</td>
                             <td class="py-3 px-4 font-mono text-sm break-all">${sha256Id.toString()}</td>
                             <td class="py-3 px-4 text-center">
@@ -218,9 +236,17 @@
                     <i data-lucide="clipboard" class="w-4 h-4"></i>
                 </button>
             </div>
+            <div class="flex items-center justify-center my-4">
+                <div class="flex-1 border-t border-gray-300"></div>
+                <span class="px-4 text-gray-500 text-sm">or</span>
+                <div class="flex-1 border-t border-gray-300"></div>
+            </div>
+            <div>
+                <input type="file" id="fileInput" 
+                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+            </div>
             <button onclick="createHashes()"
-                class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors">Generate
-                Hashes</button>
+                class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors w-full sm:w-auto">Generate Hashes</button>
             <div id="hashResults" class="mt-4"></div>
         </div>
     </div>

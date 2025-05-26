@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "xtask"]
+members = [".", "chunks", "xtask"]
 
 [package]
 name = "okid"
