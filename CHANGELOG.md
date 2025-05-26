@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.1](https://github.com/sevki/okid/compare/v0.15.0...v0.15.1) (2025-05-26)
+
+
+### Bug Fixes
+
+* remove docs/src/swift ([c47e7eb](https://github.com/sevki/okid/commit/c47e7eb94375eeef0f6a3d9c7b4773703ed4b43c))
+* remove docs/src/swift ([9170113](https://github.com/sevki/okid/commit/9170113ea4c6ab547ba373ba76ae48a6c624186d))
+
 ## [0.15.0](https://github.com/sevki/okid/compare/v0.14.0...v0.15.0) (2025-05-25)
 
 
