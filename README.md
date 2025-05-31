@@ -54,9 +54,6 @@ cargo xtask build
 # Build the main WASM module
 cargo xtask wasm
 
-# Build the chunks WASM module
-cargo xtask chunks
-
 # Build and serve mdbook documentation
 cargo xtask mdbook
 
@@ -66,8 +63,6 @@ cargo xtask build-docs
 # Run all tests
 cargo xtask test
 
-# Run wasm-pack tests for chunks module
-cargo xtask test-chunks
 ```
 
 ## License

@@ -1,6 +1,6 @@
 # Summary
 
 - [Intro](intro.md)
-- [Playground](playground.md)
+- [Tools](tools.md)
 # API
 - [TypeScript](typescript/index.html)
