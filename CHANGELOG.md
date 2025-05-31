@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.16.0](https://github.com/sevki/okid/compare/v0.15.1...v0.16.0) (2025-05-31)
+
+
+### Features
+
+* chunker ([0ab5ed8](https://github.com/sevki/okid/commit/0ab5ed8313a44a03aeafa9a800bfee144e6c925d))
+* tools page for okid tools ([fb68607](https://github.com/sevki/okid/commit/fb68607cd3b07271859761dc3231497c01956292))
+
+
+### Bug Fixes
+
+* remove docs/src/swift ([86f10ad](https://github.com/sevki/okid/commit/86f10ad2fae6077b4a4f6ffec0f425ad0ee796da))
+
 ## [0.15.1](https://github.com/sevki/okid/compare/v0.15.0...v0.15.1) (2025-05-26)
 
 
