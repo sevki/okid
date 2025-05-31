@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.1](https://github.com/sevki/okid/compare/v0.16.0...v0.16.1) (2025-05-31)
+
+
+### Bug Fixes
+
+* broken documentation ([3654e82](https://github.com/sevki/okid/commit/3654e825095d87ddbf1fd4268e3b8c309c3fa966))
+
 ## [0.16.0](https://github.com/sevki/okid/compare/v0.15.1...v0.16.0) (2025-05-31)
 
 
