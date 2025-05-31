@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.2](https://github.com/sevki/okid/compare/v0.16.1...v0.16.2) (2025-05-31)
+
+
+### Bug Fixes
+
+* broken tools page ([436e7d1](https://github.com/sevki/okid/commit/436e7d12990c8b3874630cbd01cc5106fcd72eea))
+
 ## [0.16.1](https://github.com/sevki/okid/compare/v0.16.0...v0.16.1) (2025-05-31)
 
 
