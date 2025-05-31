@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Async Iterator Integration Tests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 3px;
+        }
+
+        .test-pass {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .test-fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .test-running {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Rust-JavaScript Async Iterator Bridge Tests</h1>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Console Output</h2>
+        <pre id="console-output"></pre>
+    </div>
+
+    <script type="module">
+        import init, {
+            ChunksIterator, Chunker, 
+        } from '../pkg/chunks.js';
+
+        let consoleOutput = '';
+        const originalLog = console.log;
+        console.log = (...args) => {
+            consoleOutput += args.join(' ') + '\n';
+            document.getElementById('console-output').textContent = consoleOutput;
+            originalLog(...args);
+        };
+
+        function addTestResult(testName, passed, message = '') {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${passed ? 'test-pass' : 'test-fail'}`;
+            resultDiv.innerHTML = `
+                <strong>${testName}</strong>: ${passed ? 'PASS' : 'FAIL'}
+                ${message ? `<br><small>${message}</small>` : ''}
+            `;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function addRunningTest(testName) {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'test-result test-running';
+            resultDiv.innerHTML = `<strong>${testName}</strong>: Running...`;
+            resultDiv.id = `test-${testName.replace(/\s+/g, '-')}`;
+            resultsDiv.appendChild(resultDiv);
+            return resultDiv;
+        }
+
+        async function runTests() {
+            const tests = [
+                {
+                    name: 'Async Iterator Basic Functionality',
+                    run: async () => {
+                        const chunker = new Chunker("",  16384, 32768, 65536).intoAsyncIterator().async_iterator();
+                        console.log('Created Chunker:', chunker );
+                        const iterator = chunker;
+                        console.log('Created Async Iterator:', iterator);
+                        // let results = [];
+                        for await (const chunk of iterator) {
+                            console.log('Received chunk:', chunk);
+                            // results.push(chunk);
+                        }
+
+                    }
+                },
+            ];
+
+            for (const test of tests) {
+                const runningDiv = addRunningTest(test.name);
+                try {
+                    const passed = await test.run();
+                    runningDiv.className = `test-result ${passed ? 'test-pass' : 'test-fail'}`;
+                    runningDiv.innerHTML = `<strong>${test.name}</strong>: ${passed ? 'PASS' : 'FAIL'}`;
+                    addTestResult(test.name, passed);
+                } catch (e) {
+                    runningDiv.className = 'test-result test-fail';
+                    runningDiv.innerHTML = `<strong>${test.name}</strong>: FAIL<br><small>${e.message}</small>`;
+                    addTestResult(test.name, false, e.message);
+                }
+            }
+        }
+
+        async function main() {
+            try {
+                await init();
+                console.log('WASM module loaded successfully');
+                globalThis.Chunker = Chunker;
+                globalThis.ChunksIterator = ChunksIterator;
+                await runTests();
+            } catch (e) {
+                console.error('Failed to load WASM module:', e);
+                addTestResult('WASM Loading', false, `Failed to load: ${e.message}`);
+            }
+        }
+
+        main();
+    </script>
+</body>
+
+</html>

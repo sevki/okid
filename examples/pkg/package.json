@@ -1,0 +1,15 @@
+{
+  "name": "chunks",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "chunks_bg.wasm",
+    "chunks.js",
+    "chunks.d.ts"
+  ],
+  "main": "chunks.js",
+  "types": "chunks.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
