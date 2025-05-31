@@ -8,7 +8,7 @@
 //!     let mut hasher1 = sha2::Sha256::new();
 //!     hasher1.update(b"hello world");
 //!     let okid1 = OkId::from(hasher1);
-//!     println!("okid1: {}", okid1.display_safe());
+//!     println!("okid1: {}", okid1.to_display_safe());
 //!     // prints
 //!     // 🔒
 //! }
@@ -30,8 +30,8 @@ const FE_RANGE_SIZE: u8 = 16;
 #[wasm_bindgen]
 impl OkId {
     /// Embed an OkId inside a "secret" emoji using variation selectors
-    #[wasm_bindgen(js_name = displaySafe)]
-    pub fn display_safe(self) -> String {
+    #[wasm_bindgen(js_name = toDisplaySafe)]
+    pub fn to_display_safe(self) -> String {
         let mut bytes = vec![];
         self.encode(&mut bytes).unwrap();
         let mut result = String::from(SECRET_EMOJI);

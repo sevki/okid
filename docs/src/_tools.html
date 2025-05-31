@@ -1,7 +1,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script type="module">
-    import init, { OkId } from './okid/okid.js';
+    import init, { OkId } from "./okid/okid.js";
 
     async function run() {
         await init();
@@ -11,37 +11,37 @@
     window.copyToClipboard = function (text, buttonId) {
         navigator.clipboard.writeText(text).then(() => {
             const button = document.getElementById(buttonId);
-            const icon = button.querySelector('i');
-            const originalClass = icon.getAttribute('data-lucide');
+            const icon = button.querySelector("i");
+            const originalClass = icon.getAttribute("data-lucide");
 
-            icon.setAttribute('data-lucide', 'check');
-            button.classList.remove('text-gray-600');
-            button.classList.add('text-green-600');
+            icon.setAttribute("data-lucide", "check");
+            button.classList.remove("text-gray-600");
+            button.classList.add("text-green-600");
             lucide.createIcons();
 
             setTimeout(() => {
-                icon.setAttribute('data-lucide', originalClass);
-                button.classList.remove('text-green-600');
-                button.classList.add('text-gray-600');
+                icon.setAttribute("data-lucide", originalClass);
+                button.classList.remove("text-green-600");
+                button.classList.add("text-gray-600");
                 lucide.createIcons();
             }, 2000);
         });
-    }
+    };
 
     window.pasteFromClipboard = async function (inputId) {
         try {
             const text = await navigator.clipboard.readText();
             document.getElementById(inputId).value = text;
         } catch (err) {
-            console.error('Failed to read clipboard:', err);
+            console.error("Failed to read clipboard:", err);
         }
-    }
+    };
 
     window.createHashes = async function () {
-        const textInput = document.getElementById('hashInput').value;
-        const fileInput = document.getElementById('fileInput');
+        const textInput = document.getElementById("hashInput").value;
+        const fileInput = document.getElementById("fileInput");
         const file = fileInput.files[0];
-        
+
         if (file) {
             // Use file if selected
             const arrayBuffer = await file.arrayBuffer();
@@ -53,13 +53,13 @@
             const data = encoder.encode(textInput);
             displayHashes(data, textInput);
         } else {
-            alert('Please enter text or select a file');
+            alert("Please enter text or select a file");
         }
-    }
+    };
 
     window.displayHashes = function (data, source) {
-        const results = document.getElementById('hashResults');
-        
+        const results = document.getElementById("hashResults");
+
         // Create hashes
         const sha256Id = OkId.fromSha256(data);
         const blake3Id = OkId.fromBlake3(data);
@@ -83,7 +83,7 @@
                             <td class="py-3 px-4 font-medium text-gray-600">SHA256</td>
                             <td class="py-3 px-4 font-mono text-sm break-all">${sha256Id.toString()}</td>
                             <td class="py-3 px-4 text-center">
-                                <button id="copy-sha256" onclick="copyToClipboard('${sha256Id.toString()}', 'copy-sha256')" 
+                                <button id="copy-sha256" onclick="copyToClipboard('${sha256Id.toString()}', 'copy-sha256')"
                                         class="p-1 text-gray-600 hover:text-gray-900 transition-colors" title="Copy">
                                     <i data-lucide="copy" class="w-4 h-4"></i>
                                 </button>
@@ -93,7 +93,7 @@
                             <td class="py-3 px-4 font-medium text-gray-600">Blake3</td>
                             <td class="py-3 px-4 font-mono text-sm break-all">${blake3Id.toString()}</td>
                             <td class="py-3 px-4 text-center">
-                                <button id="copy-blake3" onclick="copyToClipboard('${blake3Id.toString()}', 'copy-blake3')" 
+                                <button id="copy-blake3" onclick="copyToClipboard('${blake3Id.toString()}', 'copy-blake3')"
                                         class="p-1 text-gray-600 hover:text-gray-900 transition-colors" title="Copy">
                                     <i data-lucide="copy" class="w-4 h-4"></i>
                                 </button>
@@ -103,7 +103,7 @@
                             <td class="py-3 px-4 font-medium text-gray-600">Fingerprint</td>
                             <td class="py-3 px-4 font-mono text-sm break-all">${fingerprintId.toString()}</td>
                             <td class="py-3 px-4 text-center">
-                                <button id="copy-fingerprint" onclick="copyToClipboard('${fingerprintId.toString()}', 'copy-fingerprint')" 
+                                <button id="copy-fingerprint" onclick="copyToClipboard('${fingerprintId.toString()}', 'copy-fingerprint')"
                                         class="p-1 text-gray-600 hover:text-gray-900 transition-colors" title="Copy">
                                     <i data-lucide="copy" class="w-4 h-4"></i>
                                 </button>
@@ -114,39 +114,39 @@
             </div>
         `;
         lucide.createIcons();
-    }
+    };
 
     window.generateUuid = function () {
         const uuidId = OkId.newUuid();
-        const resultDiv = document.getElementById('uuidResult');
+        const resultDiv = document.getElementById("uuidResult");
         resultDiv.innerHTML = `
             <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                 <span class="font-mono text-sm">${uuidId.toString()}</span>
-                <button id="copy-uuid" onclick="copyToClipboard('${uuidId.toString()}', 'copy-uuid')" 
+                <button id="copy-uuid" onclick="copyToClipboard('${uuidId.toString()}', 'copy-uuid')"
                         class="p-1 text-gray-600 hover:text-gray-900 transition-colors" title="Copy">
                     <i data-lucide="copy" class="w-4 h-4"></i>
                 </button>
             </div>`;
         lucide.createIcons();
-    }
+    };
 
     window.generateUlid = function () {
         const ulidId = OkId.newUlid();
-        const resultDiv = document.getElementById('ulidResult');
+        const resultDiv = document.getElementById("ulidResult");
         resultDiv.innerHTML = `
             <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                 <span class="font-mono text-sm">${ulidId.toString()}</span>
-                <button id="copy-ulid" onclick="copyToClipboard('${ulidId.toString()}', 'copy-ulid')" 
+                <button id="copy-ulid" onclick="copyToClipboard('${ulidId.toString()}', 'copy-ulid')"
                         class="p-1 text-gray-600 hover:text-gray-900 transition-colors" title="Copy">
                     <i data-lucide="copy" class="w-4 h-4"></i>
                 </button>
             </div>`;
         lucide.createIcons();
-    }
+    };
 
     window.convertToPathSafe = function () {
-        const okidInput = document.getElementById('pathSafeInput').value;
-        const resultDiv = document.getElementById('pathSafeResult');
+        const okidInput = document.getElementById("pathSafeInput").value;
+        const resultDiv = document.getElementById("pathSafeResult");
 
         try {
             const okidInstance = OkId.fromString(okidInput);
@@ -154,10 +154,10 @@
             resultDiv.innerHTML = `
                 <div class="flex items-center justify-between p-2 bg-green-50 text-green-700 rounded">
                     <div>
-                        <span class="font-medium">Path-safe:</span> 
+                        <span class="font-medium">Path-safe:</span>
                         <span class="font-mono text-sm">${pathSafe}</span>
                     </div>
-                    <button id="copy-pathsafe" onclick="copyToClipboard('${pathSafe}', 'copy-pathsafe')" 
+                    <button id="copy-pathsafe" onclick="copyToClipboard('${pathSafe}', 'copy-pathsafe')"
                             class="p-1 text-green-600 hover:text-green-900 transition-colors" title="Copy">
                         <i data-lucide="copy" class="w-4 h-4"></i>
                     </button>
@@ -166,22 +166,22 @@
         } catch (error) {
             resultDiv.innerHTML = `<div class="p-2 bg-red-50 text-red-700 rounded"><span class="font-medium">Error:</span> ${error.message}</div>`;
         }
-    }
+    };
 
     window.displaySafe = function () {
-        const input = document.getElementById('secretInput').value;
-        const resultDiv = document.getElementById('fromDisplaySafeResult');
+        const input = document.getElementById("secretInput").value;
+        const resultDiv = document.getElementById("fromDisplaySafeResult");
 
         try {
-            const okid = OkId.from_display_safe(input);
+            const okid = OkId.fromDisplaySafe(input);
             const okidString = okid.toString();
             resultDiv.innerHTML = `
                 <div class="flex items-center justify-between p-2 bg-green-50 text-green-700 rounded">
                     <div>
-                        <span class="font-medium">OkId:</span> 
+                        <span class="font-medium">OkId:</span>
                         <span class="font-mono text-sm">${okidString}</span>
                     </div>
-                    <button id="copy-displaysafe" onclick="copyToClipboard('${okidString}', 'copy-displaysafe')" 
+                    <button id="copy-displaysafe" onclick="copyToClipboard('${okidString}', 'copy-displaysafe')"
                             class="p-1 text-green-600 hover:text-green-900 transition-colors" title="Copy">
                         <i data-lucide="copy" class="w-4 h-4"></i>
                     </button>
@@ -190,22 +190,22 @@
         } catch (error) {
             resultDiv.innerHTML = `<div class="p-2 bg-red-50 text-red-700 rounded"><span class="font-medium">Invalid OkId format:</span> ${error.message}</div>`;
         }
-    }
+    };
 
     window.toDisplaySafe = function () {
-        const okidInput = document.getElementById('okidInput').value;
-        const resultDiv = document.getElementById('toDisplaySafeResult');
+        const okidInput = document.getElementById("okidInput").value;
+        const resultDiv = document.getElementById("toDisplaySafeResult");
 
         try {
             const okidInstance = OkId.fromString(okidInput);
-            const displaySafe = okidInstance.display_safe();
+            const displaySafe = okidInstance.toDisplaySafe();
             resultDiv.innerHTML = `
                 <div class="flex items-center justify-between p-2 bg-green-50 text-green-700 rounded">
                     <div>
-                        <span class="font-medium">Display-safe:</span> 
+                        <span class="font-medium">Display-safe:</span>
                         <span class="font-mono text-sm">${displaySafe}</span>
                     </div>
-                    <button id="copy-todisplaysafe" onclick="copyToClipboard('${displaySafe}', 'copy-todisplaysafe')" 
+                    <button id="copy-todisplaysafe" onclick="copyToClipboard('${displaySafe}', 'copy-todisplaysafe')"
                             class="p-1 text-green-600 hover:text-green-900 transition-colors" title="Copy">
                         <i data-lucide="copy" class="w-4 h-4"></i>
                     </button>
@@ -214,29 +214,29 @@
         } catch (error) {
             resultDiv.innerHTML = `<div class="p-2 bg-red-50 text-red-700 rounded"><span class="font-medium">Error:</span> ${error.message}</div>`;
         }
-    }
+    };
 
     run();
 
     // Initialize Lucide icons after DOM is loaded
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener("DOMContentLoaded", () => {
         lucide.createIcons();
     });
 </script>
 <script type="module">
-    import initChunks, { FileChunker, chunk_text } from './chunks/chunks.js';
-    
+    import initChunks, { FileChunker, chunk_text } from "./chunks/chunks.js";
+
     async function initializeChunks() {
         try {
             await initChunks();
             window.FileChunker = FileChunker;
             window.chunk_text = chunk_text;
-            console.log('Chunks module initialized');
+            console.log("Chunks module initialized");
         } catch (error) {
-            console.error('Failed to initialize chunks module:', error);
+            console.error("Failed to initialize chunks module:", error);
         }
     }
-    
+
     initializeChunks();
 </script>
 <div class="w-full space-y-12">
@@ -244,11 +244,17 @@
         <h2 class="text-2xl font-bold text-gray-800 mb-6">Hash Generators</h2>
         <div class="space-y-4">
             <div class="relative">
-                <input type="text" id="hashInput" value="Hello, World!"
-                    class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" />
-                <button onclick="pasteFromClipboard('hashInput')"
+                <input
+                    type="text"
+                    id="hashInput"
+                    value="Hello, World!"
+                    class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                />
+                <button
+                    onclick="pasteFromClipboard('hashInput')"
                     class="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-600 hover:text-gray-900 transition-colors"
-                    title="Paste">
+                    title="Paste"
+                >
                     <i data-lucide="clipboard" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -258,11 +264,18 @@
                 <div class="flex-1 border-t border-gray-300"></div>
             </div>
             <div>
-                <input type="file" id="fileInput" 
-                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                <input
+                    type="file"
+                    id="fileInput"
+                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
             </div>
-            <button onclick="createHashes()"
-                class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors w-full sm:w-auto">Generate Hashes</button>
+            <button
+                onclick="createHashes()"
+                class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors w-full sm:w-auto"
+            >
+                Generate Hashes
+            </button>
             <div id="hashResults" class="mt-4"></div>
         </div>
     </div>
@@ -271,72 +284,114 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <h3 class="text-lg font-semibold text-gray-700 mb-4">UUID</h3>
-                <button onclick="generateUuid()"
-                    class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors mb-4">Generate
-                    UUID</button>
+                <button
+                    onclick="generateUuid()"
+                    class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors mb-4"
+                >
+                    Generate UUID
+                </button>
                 <div id="uuidResult"></div>
             </div>
             <div>
                 <h3 class="text-lg font-semibold text-gray-700 mb-4">ULID</h3>
-                <button onclick="generateUlid()"
-                    class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors mb-4">Generate
-                    ULID</button>
+                <button
+                    onclick="generateUlid()"
+                    class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors mb-4"
+                >
+                    Generate ULID
+                </button>
                 <div id="ulidResult"></div>
             </div>
         </div>
     </div>
     <div>
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Path-safe Converter</h2>
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">
+            Path-safe Converter
+        </h2>
         <div class="space-y-4">
             <div class="relative">
-                <input type="text" id="pathSafeInput" value="" placeholder="Enter an OkId string"
-                    class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" />
-                <button onclick="pasteFromClipboard('pathSafeInput')"
+                <input
+                    type="text"
+                    id="pathSafeInput"
+                    value=""
+                    placeholder="Enter an OkId string"
+                    class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                />
+                <button
+                    onclick="pasteFromClipboard('pathSafeInput')"
                     class="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-600 hover:text-gray-900 transition-colors"
-                    title="Paste">
+                    title="Paste"
+                >
                     <i data-lucide="clipboard" class="w-4 h-4"></i>
                 </button>
             </div>
-            <button onclick="convertToPathSafe()"
-                class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors">Convert
-                to Path-safe</button>
+            <button
+                onclick="convertToPathSafe()"
+                class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors"
+            >
+                Convert to Path-safe
+            </button>
             <div id="pathSafeResult" class="mt-2"></div>
         </div>
     </div>
     <div>
         <h2 class="text-2xl font-bold text-gray-800 mb-6">OkSecret</h2>
         <div class="space-y-8">
-            <h3 class="text-lg font-semibold text-gray-700 mb-4">To Display Safe</h3>
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">
+                To Display Safe
+            </h3>
             <div class="space-y-4">
                 <div class="relative">
-                    <input type="text" id="okidInput" value="" placeholder="Enter an OkId string"
-                        class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" />
-                    <button onclick="pasteFromClipboard('okidInput')"
+                    <input
+                        type="text"
+                        id="okidInput"
+                        value=""
+                        placeholder="Enter an OkId string"
+                        class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                    />
+                    <button
+                        onclick="pasteFromClipboard('okidInput')"
                         class="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-600 hover:text-gray-900 transition-colors"
-                        title="Paste">
+                        title="Paste"
+                    >
                         <i data-lucide="clipboard" class="w-4 h-4"></i>
                     </button>
                 </div>
-                <button onclick="toDisplaySafe()"
-                    class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors">Convert
-                    to Display Safe</button>
+                <button
+                    onclick="toDisplaySafe()"
+                    class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors"
+                >
+                    Convert to Display Safe
+                </button>
                 <div id="toDisplaySafeResult" class="mt-2"></div>
             </div>
             <div>
-                <h3 class="text-lg font-semibold text-gray-700 mb-4">From Display Safe</h3>
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">
+                    From Display Safe
+                </h3>
                 <div class="space-y-4">
                     <div class="relative">
-                        <input type="text" id="secretInput" value="" placeholder="Enter an OkId string"
-                            class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" />
-                        <button onclick="pasteFromClipboard('secretInput')"
+                        <input
+                            type="text"
+                            id="secretInput"
+                            value=""
+                            placeholder="Enter an OkId string"
+                            class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                        />
+                        <button
+                            onclick="pasteFromClipboard('secretInput')"
                             class="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-600 hover:text-gray-900 transition-colors"
-                            title="Paste">
+                            title="Paste"
+                        >
                             <i data-lucide="clipboard" class="w-4 h-4"></i>
                         </button>
                     </div>
-                    <button onclick="displaySafe()"
-                        class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors">Parse
-                        OkId</button>
+                    <button
+                        onclick="displaySafe()"
+                        class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors"
+                    >
+                        Parse OkId
+                    </button>
                     <div id="fromDisplaySafeResult" class="mt-2"></div>
                 </div>
             </div>

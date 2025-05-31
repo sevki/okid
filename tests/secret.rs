@@ -13,8 +13,8 @@ fn test_display_safe_roundtrip() {
         hasher2.update(b"hello uranus");
         let okid2 = OkId::from(hasher2);
 
-        let encoded1 = okid1.display_safe();
-        let encoded2 = okid2.display_safe();
+        let encoded1 = okid1.to_display_safe();
+        let encoded2 = okid2.to_display_safe();
 
         // Both look identical when rendered, but contain different data
         println!("Encoded OkId 1: {}", encoded1);
@@ -35,7 +35,7 @@ fn test_display_safe_roundtrip() {
 fn test_display_safe_with_fingerprint() {
     // Test with fingerprint type
     let fingerprint_okid = "fː0123456789abcdef".parse::<OkId>().unwrap();
-    let encoded = fingerprint_okid.display_safe();
+    let encoded = fingerprint_okid.to_display_safe();
     println!("Encoded fingerprint: {}", encoded);
     let decoded = OkId::from_display_safe(&encoded).unwrap();
     assert_eq!(fingerprint_okid, decoded);

@@ -14,7 +14,7 @@ async fn main() {
 
     match (input.parse::<OkId>(), OkId::from_display_safe(second_input)) {
         (Ok(id), None) => {
-            println!("{}", id.display_safe());
+            println!("{}", id.to_display_safe());
         }
         (Err(_), Some(id)) => {
             println!("{}", id);
