@@ -34,12 +34,12 @@ jobs:
       MDBOOK_VERSION: 0.4.36
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
-      
+
       - name: Cache cargo dependencies
         uses: actions/cache@v3
         with:
@@ -50,7 +50,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
-      
+
       - name: Cache cargo build
         uses: actions/cache@v3
         with:
@@ -58,22 +58,20 @@ jobs:
           key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}-${{ hashFiles('**/*.rs') }}
           restore-keys: |
             ${{ runner.os }}-cargo-build-
-      
 
-      
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      
+          node-version: "20"
+
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Cache Docker layers
         uses: actions/cache@v3
         with:
@@ -81,41 +79,16 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-      
+
       - name: Build WASM package
         run: |
           cargo xtask wasm
           cp -r pkg docs/src/okid
-      
+
       - name: Generate TypeScript documentation
         run: |
           pnpm dlx typedoc --entryPoints ./pkg/okid.d.ts --skipErrorChecking --out  docs/src/typescript --readme none
 
-      - name: Generate Swift documentation using Docker
-        run: |
-          # Create output directory with proper permissions
-          mkdir -p docs/src/swift
-          chmod 777 docs/src/swift
-          
-          # Build Docker image for Swift docs
-          docker buildx build \
-            -f Dockerfile.swift-docs \
-            -t okid-swift-docs \
-            --load \
-            .
-          
-          # Run the container to generate documentation
-          docker run --rm \
-            -v ${{ github.workspace }}/docs/src/swift:/output/docs/src/swift \
-            okid-swift-docs
-          
-          # Verify documentation was generated
-          echo "Swift documentation contents:"
-          ls -la docs/src/swift/
-          
-          # Try to ensure files have correct permissions (errors are ok)
-          chmod -R 755 docs/src/swift/ 2>/dev/null || true
-      
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
@@ -126,10 +99,10 @@ jobs:
         with:
           path: ~/.cargo/bin/mdbook
           key: ${{ runner.os }}-mdbook-${{ env.MDBOOK_VERSION }}
-      
+
       - name: Install mdbook
         if: steps.cache-mdbook.outputs.cache-hit != 'true'
-        run: cargo install --version ${MDBOOK_VERSION} mdbook        
+        run: cargo install --version ${MDBOOK_VERSION} mdbook
 
       - name: check docs directory
         run: |
@@ -138,7 +111,7 @@ jobs:
 
       - name: Build with mdBook
         run: mdbook build
-        
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

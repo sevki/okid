@@ -41,5 +41,34 @@ use okid::{okid, OkId};
 const HELLO_WORLD_SHA256: OkId = okid!("2ːb94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
 ```
 
+## Development
+
+### Build Tasks
+
+This project uses `cargo xtask` for build automation. Available tasks:
+
+```bash
+# Build the Rust library
+cargo xtask build
+
+# Build the main WASM module
+cargo xtask wasm
+
+# Build the chunks WASM module
+cargo xtask chunks
+
+# Build and serve mdbook documentation
+cargo xtask mdbook
+
+# Build docs with all WASM modules
+cargo xtask build-docs
+
+# Run all tests
+cargo xtask test
+
+# Run wasm-pack tests for chunks module
+cargo xtask test-chunks
+```
+
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsevki%2Fokid.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsevki%2Fokid?ref=badge_large)

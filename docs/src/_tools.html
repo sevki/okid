@@ -223,6 +223,22 @@
         lucide.createIcons();
     });
 </script>
+<script type="module">
+    import initChunks, { FileChunker, chunk_text } from './chunks/chunks.js';
+    
+    async function initializeChunks() {
+        try {
+            await initChunks();
+            window.FileChunker = FileChunker;
+            window.chunk_text = chunk_text;
+            console.log('Chunks module initialized');
+        } catch (error) {
+            console.error('Failed to initialize chunks module:', error);
+        }
+    }
+    
+    initializeChunks();
+</script>
 <div class="w-full space-y-12">
     <div>
         <h2 class="text-2xl font-bold text-gray-800 mb-6">Hash Generators</h2>
