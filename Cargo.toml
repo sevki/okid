@@ -32,7 +32,7 @@ wasm-bindgen = "0.2.100"
 thiserror = "2.0.12"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-jetstream_wireformat = "8.1.2"
+jetstream_wireformat = "8.3.0"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 jetstream_wireformat = { version = "8.1.2", default-features = false, features = [
     "std",
