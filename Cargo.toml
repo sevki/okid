@@ -18,7 +18,7 @@ bytes = { version = "1.10.1", features = ["serde"] }
 getrandom = { version = "0.3.2", features = ["wasm_js"] }
 digest = "0.10.7"
 hex = { version = "0.4.3", features = ["serde"] }
-okstd = "1.0.2"
+okstd = "2.0.1"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = {version = "1.0.140", optional = true }
 sha1 = { version = "0.10.6", optional = true }
