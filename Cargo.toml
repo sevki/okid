@@ -55,7 +55,7 @@ graphql = ["dep:async-graphql"]
 
 
 [dev-dependencies]
-insta = { version = "1.42.2", features = ["yaml"] }
+insta = { version = "1.43.2", features = ["yaml"] }
 
 [[bin]]
 name = "oksecret"
