@@ -31,6 +31,8 @@ impl OkId {
             #[cfg(feature = "uuid")]
             super::BinaryType::Uuid => 16,
             super::BinaryType::Fingerprint => 8,
+            #[cfg(feature = "node_id")]
+            super::BinaryType::NodeID => 32,
             super::BinaryType::Unknown => 0,
         }
     }
