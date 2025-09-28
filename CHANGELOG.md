@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/sevki/okid/compare/v0.16.2...v0.17.0) (2025-09-28)
+
+
+### Features
+
+* iroh nodeId support ([ae054d4](https://github.com/sevki/okid/commit/ae054d452202bc76174ac24ed8a88070391f373a))
+
 ## [0.16.2](https://github.com/sevki/okid/compare/v0.16.1...v0.16.2) (2025-05-31)
 
 
