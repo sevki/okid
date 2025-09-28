@@ -42,6 +42,9 @@ pub mod macros;
 pub mod blake3;
 /// fingerprint module
 pub mod fingerprint;
+#[cfg(feature = "node_id")]
+/// nodeid module
+pub mod node_id;
 #[deprecated(
     since = "0.14.0",
     note = "Sha1 is not considered secure anymore, use sha2 or sha3 instead"
@@ -91,6 +94,9 @@ pub(crate) enum BinaryType {
     Uuid = 1 << 5,
     // Fingerprint
     Fingerprint = 1 << 6,
+    #[cfg(feature = "node_id")]
+    // NodeID
+    NodeID = 1 << 7,
 }
 
 impl FromStr for BinaryType {
@@ -112,6 +118,8 @@ impl FromStr for BinaryType {
             #[cfg(feature = "uuid")]
             "uuid" => Ok(Self::Uuid),
             "fingerprint" => Ok(Self::Fingerprint),
+            #[cfg(feature = "node_id")]
+            "node_id" => Ok(Self::NodeID),
             _ => Err(Error::InvalidHashType),
         }
     }
@@ -133,7 +141,8 @@ impl From<char> for BinaryType {
             #[cfg(feature = "uuid")]
             'i' => Self::Uuid,
             'f' => Self::Fingerprint,
-
+            #[cfg(feature = "node_id")]
+            'n' => Self::NodeID,
             _ => Self::Unknown,
         }
     }
@@ -154,8 +163,10 @@ impl BinaryType {
             BinaryType::Ulid => 'u',
             #[cfg(feature = "uuid")]
             BinaryType::Uuid => 'i',
-            BinaryType::Unknown => '0',
             BinaryType::Fingerprint => 'f',
+            BinaryType::Unknown => '0',
+            #[cfg(feature = "node_id")]
+            BinaryType::NodeID => 'n',
         }
     }
 }
@@ -177,6 +188,8 @@ impl Display for BinaryType {
             BinaryType::Uuid => write!(f, "uuid"),
             BinaryType::Unknown => write!(f, "unknown"),
             BinaryType::Fingerprint => write!(f, "fingerprint"),
+            #[cfg(feature = "node_id")]
+            BinaryType::NodeID => write!(f, "nodeid"),
         }
     }
 }
@@ -330,6 +343,10 @@ impl PartialEq for OkId {
             (Digest::Uuid(_uuid), _) => false,
             (Digest::Fingerprint(a), Digest::Fingerprint(b)) => a == b,
             (Digest::Fingerprint(_fingerprint), _) => false,
+            #[cfg(feature = "node_id")]
+            (Digest::NodeID(a), Digest::NodeID(b)) => a == b,
+            #[cfg(feature = "node_id")]
+            (Digest::NodeID(_node_id), _) => false,
         }
     }
 }
@@ -373,6 +390,11 @@ impl Hash for OkId {
             Digest::Fingerprint(d) => {
                 state.write_u8(b'f');
                 d.0.get().hash(state);
+            }
+            #[cfg(feature = "node_id")]
+            Digest::NodeID(d) => {
+                state.write_u8(b'n');
+                d.0.hash(state);
             }
         }
     }
@@ -464,6 +486,11 @@ fn parse_okid(s: &str) -> Result<OkId, Error> {
             hash_type,
             digest: Digest::Fingerprint(rest.parse()?),
         }),
+        #[cfg(feature = "node_id")]
+        BinaryType::NodeID => Ok(OkId {
+            hash_type,
+            digest: Digest::NodeID(rest.parse()?),
+        }),
     }
 }
 
@@ -486,6 +513,8 @@ enum Digest {
     #[cfg(feature = "uuid")]
     Uuid(crate::uuid::Uuid),
     Fingerprint(crate::fingerprint::Fingerprint),
+    #[cfg(feature = "node_id")]
+    NodeID(crate::node_id::NodeID),
 }
 
 impl Display for OkId {
@@ -506,6 +535,8 @@ impl Display for OkId {
             #[cfg(feature = "uuid")]
             Digest::Uuid(uuid) => uuid.fmt(f),
             Digest::Fingerprint(fingerprint) => fingerprint.fmt(f),
+            #[cfg(feature = "node_id")]
+            Digest::NodeID(node_id) => std::fmt::Display::fmt(node_id, f),
         }
     }
 }
@@ -528,6 +559,8 @@ impl std::fmt::Debug for OkId {
             #[cfg(feature = "uuid")]
             Digest::Uuid(uuid) => std::fmt::Display::fmt(uuid, f),
             Digest::Fingerprint(fingerprint) => std::fmt::Display::fmt(fingerprint, f),
+            #[cfg(feature = "node_id")]
+            Digest::NodeID(node_id) => std::fmt::Display::fmt(node_id, f),
         }
     }
 }
@@ -585,6 +618,8 @@ impl OkId {
             BinaryType::Ulid => b'u',
             #[cfg(feature = "uuid")]
             BinaryType::Uuid => b'i',
+            #[cfg(feature = "node_id")]
+            BinaryType::NodeID => b'n',
 
             BinaryType::Fingerprint => b'f',
         };
@@ -615,6 +650,15 @@ impl OkId {
                 let mut i = 0;
                 while i < sha512_bytes.len() {
                     bytes[i + 1] = sha512_bytes[i];
+                    i += 1;
+                }
+            }
+            #[cfg(feature = "node_id")]
+            Digest::NodeID(node_id) => {
+                let node_id_bytes = node_id.0;
+                let mut i = 0;
+                while i < node_id_bytes.len() {
+                    bytes[i + 1] = node_id_bytes[i];
                     i += 1;
                 }
             }
@@ -691,6 +735,8 @@ const fn parse_okid_bytes(bytes: &[u8]) -> Option<OkId> {
         #[cfg(feature = "uuid")]
         b'i' => BinaryType::Uuid,
         b'f' => BinaryType::Fingerprint,
+        #[cfg(feature = "node_id")]
+        b'n' => BinaryType::NodeID,
         _ => return None,
     };
 
@@ -802,6 +848,20 @@ const fn parse_okid_bytes(bytes: &[u8]) -> Option<OkId> {
                 Some(digest) => Some(OkId {
                     hash_type,
                     digest: Digest::Fingerprint(digest),
+                }),
+                None => None,
+            }
+        }
+        #[cfg(feature = "node_id")]
+        BinaryType::NodeID => {
+            if bytes.len() != content_start + 64 {
+                // type + separator + 64 hex chars
+                return None;
+            }
+            match node_id::parse_node_id_bytes(bytes, content_start) {
+                Some(digest) => Some(OkId {
+                    hash_type,
+                    digest: Digest::NodeID(digest),
                 }),
                 None => None,
             }
