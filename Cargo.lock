@@ -427,6 +427,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "387e80962b798815a2b5c4bcfdb6bf626fa922ffe9f74e373103b858738e9f31"
 
 [[package]]
+name = "bubblebabble"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5aa93e2b5105f7a8bf556220f93b8cf936c26ee0d7b592de2d90770b1f84b66b"
+
+[[package]]
 name = "bumpalo"
 version = "3.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2623,6 +2629,7 @@ version = "0.17.0"
 dependencies = [
  "async-graphql",
  "blake3",
+ "bubblebabble",
  "bytes",
  "digest 0.10.7",
  "getrandom 0.3.3",

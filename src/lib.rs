@@ -4,6 +4,7 @@
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 #![deny(missing_docs)]
 
+use bubblebabble::bubblebabble;
 use wasm_bindgen::prelude::*;
 
 #[cfg(feature = "openapi")]
@@ -877,5 +878,20 @@ const fn hex_to_byte(c: u8) -> Option<u8> {
         b'a'..=b'f' => Some(c - b'a' + 10),
         b'A'..=b'F' => Some(c - b'A' + 10),
         _ => None,
+    }
+}
+
+#[wasm_bindgen]
+impl OkId {
+    /// Convert any digest to bubblebabble format
+    #[wasm_bindgen(js_name = toBubblebabble)]
+    pub fn to_bubblebabble(&self) -> String {
+        bubblebabble(self.as_ref())
+    }
+
+    /// Convert from stable babble
+    #[wasm_bindgen(js_name = fromBubblebabble)]
+    pub fn from_bubblebabble(bytes: &[u8]) -> Option<Self> {
+        bubblebabble::stablebabble(bytes).parse().ok()
     }
 }
