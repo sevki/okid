@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/sevki/okid/compare/v0.17.0...v0.18.0) (2025-09-29)
+
+
+### Features
+
+* bubblebabble ([6eb3f9b](https://github.com/sevki/okid/commit/6eb3f9b709887930fe40fb8ddd536b0d34a6d4fd))
+
 ## [0.17.0](https://github.com/sevki/okid/compare/v0.16.2...v0.17.0) (2025-09-28)
 
 
