@@ -216,6 +216,92 @@
         }
     };
 
+    window.convertToBubblebabble = function () {
+        const okidInput = document.getElementById("bubblebabbleInput").value;
+        const resultDiv = document.getElementById("bubblebabbleResult");
+
+        try {
+            const okidInstance = OkId.fromString(okidInput);
+            const bubblebabble = okidInstance.toBubblebabble();
+            resultDiv.innerHTML = `
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-green-50 text-green-700 rounded">
+                        <div>
+                            <span class="font-medium">Bubblebabble:</span>
+                            <div class="font-mono text-sm mt-1 break-all">${bubblebabble}</div>
+                        </div>
+                        <button id="copy-bubblebabble" onclick="copyToClipboard('${bubblebabble}', 'copy-bubblebabble')"
+                                class="p-1 text-green-600 hover:text-green-900 transition-colors flex-shrink-0" title="Copy">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="text-sm text-gray-600 p-3 bg-blue-50 rounded">
+                        <strong>About Bubblebabble:</strong> This is a human-readable encoding format that makes binary data easier to verify and communicate verbally. It uses pronounceable syllables and is commonly used for SSH key fingerprints.
+                    </div>
+                </div>`;
+            lucide.createIcons();
+        } catch (error) {
+            resultDiv.innerHTML = `<div class="p-2 bg-red-50 text-red-700 rounded"><span class="font-medium">Error:</span> ${error.message}</div>`;
+        }
+    };
+
+    window.generateBubblebabbleFromText = function () {
+        const textInput = document.getElementById(
+            "bubblebabbleTextInput",
+        ).value;
+        const hashType = document.getElementById("bubblebabbleHashType").value;
+        const resultDiv = document.getElementById("bubblebabbleFromTextResult");
+
+        if (!textInput.trim()) {
+            resultDiv.innerHTML = `<div class="p-2 bg-red-50 text-red-700 rounded">Please enter some text</div>`;
+            return;
+        }
+
+        try {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(textInput);
+            let okidInstance;
+
+            switch (hashType) {
+                case "sha256":
+                    okidInstance = OkId.fromSha256(data);
+                    break;
+                case "blake3":
+                    okidInstance = OkId.fromBlake3(data);
+                    break;
+                case "fingerprint":
+                    okidInstance = OkId.fingerprint(data);
+                    break;
+                default:
+                    okidInstance = OkId.fromSha256(data);
+            }
+
+            const bubblebabble = okidInstance.toBubblebabble();
+            const okidString = okidInstance.toString();
+
+            resultDiv.innerHTML = `
+                <div class="space-y-3">
+                    <div class="p-3 bg-gray-50 rounded">
+                        <div class="text-sm font-medium text-gray-700 mb-1">OkId (${hashType.toUpperCase()}):</div>
+                        <div class="font-mono text-sm break-all text-gray-600">${okidString}</div>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-green-50 text-green-700 rounded">
+                        <div class="flex-1">
+                            <span class="font-medium">Bubblebabble:</span>
+                            <div class="font-mono text-sm mt-1 break-all">${bubblebabble}</div>
+                        </div>
+                        <button id="copy-generated-bubblebabble" onclick="copyToClipboard('${bubblebabble}', 'copy-generated-bubblebabble')"
+                                class="p-1 text-green-600 hover:text-green-900 transition-colors flex-shrink-0 ml-2" title="Copy">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>`;
+            lucide.createIcons();
+        } catch (error) {
+            resultDiv.innerHTML = `<div class="p-2 bg-red-50 text-red-700 rounded"><span class="font-medium">Error:</span> ${error.message}</div>`;
+        }
+    };
+
     run();
 
     // Initialize Lucide icons after DOM is loaded
@@ -393,6 +479,89 @@
                         Parse OkId
                     </button>
                     <div id="fromDisplaySafeResult" class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">
+            Bubblebabble Converter
+        </h2>
+        <div class="space-y-8">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">
+                    Convert OkId to Bubblebabble
+                </h3>
+                <div class="space-y-4">
+                    <div class="relative">
+                        <input
+                            type="text"
+                            id="bubblebabbleInput"
+                            value=""
+                            placeholder="Enter an OkId string (e.g., 2ːb94d27b...)"
+                            class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                        />
+                        <button
+                            onclick="pasteFromClipboard('bubblebabbleInput')"
+                            class="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-600 hover:text-gray-900 transition-colors"
+                            title="Paste"
+                        >
+                            <i data-lucide="clipboard" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <button
+                        onclick="convertToBubblebabble()"
+                        class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors"
+                    >
+                        Convert to Bubblebabble
+                    </button>
+                    <div id="bubblebabbleResult" class="mt-2"></div>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">
+                    Generate Bubblebabble from Text
+                </h3>
+                <div class="space-y-4">
+                    <div class="relative">
+                        <input
+                            type="text"
+                            id="bubblebabbleTextInput"
+                            value="Hello, World!"
+                            placeholder="Enter text to hash"
+                            class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                        />
+                        <button
+                            onclick="pasteFromClipboard('bubblebabbleTextInput')"
+                            class="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-600 hover:text-gray-900 transition-colors"
+                            title="Paste"
+                        >
+                            <i data-lucide="clipboard" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div>
+                        <label
+                            for="bubblebabbleHashType"
+                            class="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                            Hash Algorithm:
+                        </label>
+                        <select
+                            id="bubblebabbleHashType"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="sha256">SHA256</option>
+                            <option value="blake3">Blake3</option>
+                            <option value="fingerprint">Fingerprint</option>
+                        </select>
+                    </div>
+                    <button
+                        onclick="generateBubblebabbleFromText()"
+                        class="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors"
+                    >
+                        Generate Bubblebabble
+                    </button>
+                    <div id="bubblebabbleFromTextResult" class="mt-2"></div>
                 </div>
             </div>
         </div>
