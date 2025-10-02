@@ -8,8 +8,37 @@ use {
 #[derive(Copy, Clone, Debug, ByteEq, Immutable, IntoBytes, ByteHash, FromBytes, Unaligned)]
 #[repr(C)]
 #[wasm_bindgen]
-pub(super) struct NodeID(pub(crate) [u8; 32]);
+pub(super) struct PubKey(pub(crate) [u8; 32]);
 
+#[cfg(feature = "pkarr")]
+impl From<pkarr::PublicKey> for OkId {
+    fn from(value: pkarr::PublicKey) -> Self {
+        let mut buf = [0; 32];
+        buf.copy_from_slice(value.as_bytes());
+        Self {
+            hash_type: super::BinaryType::PubKey,
+            digest: super::Digest::PubKey(PubKey(buf)),
+        }
+    }
+}
+
+#[cfg(feature = "pkarr")]
+impl super::IntoOkId for pkarr::PublicKey {}
+
+impl From<&ed25519_dalek::VerifyingKey> for OkId {
+    fn from(value: &ed25519_dalek::VerifyingKey) -> Self {
+        let mut buf = [0; 32];
+        buf.copy_from_slice(value.as_bytes());
+        Self {
+            hash_type: super::BinaryType::PubKey,
+            digest: super::Digest::PubKey(PubKey(buf)),
+        }
+    }
+}
+
+impl super::IntoOkId for &ed25519_dalek::VerifyingKey {}
+
+#[cfg(feature = "iroh")]
 impl From<iroh::NodeId> for OkId {
     fn from(value: iroh::NodeId) -> Self {
         let data = value.as_bytes();
@@ -19,15 +48,16 @@ impl From<iroh::NodeId> for OkId {
             buf.copy_from_slice(data);
         }
         Self {
-            hash_type: super::BinaryType::NodeID,
-            digest: super::Digest::NodeID(NodeID(buf)),
+            hash_type: super::BinaryType::PubKey,
+            digest: super::Digest::PubKey(PubKey(buf)),
         }
     }
 }
 
+#[cfg(feature = "iroh")]
 impl super::IntoOkId for iroh::NodeId {}
 
-impl Display for NodeID {
+impl Display for PubKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let data = self.0;
         let buf = &hex::encode(data);
@@ -36,7 +66,7 @@ impl Display for NodeID {
     }
 }
 
-impl FromStr for NodeID {
+impl FromStr for PubKey {
     type Err = super::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -46,12 +76,12 @@ impl FromStr for NodeID {
         }
         let mut hash: [u8; 32] = [0; 32];
         hash.copy_from_slice(&buf[..]);
-        Ok(NodeID(hash))
+        Ok(PubKey(hash))
     }
 }
 
-impl From<NodeID> for Vec<u64> {
-    fn from(value: NodeID) -> Self {
+impl From<PubKey> for Vec<u64> {
+    fn from(value: PubKey) -> Self {
         let data = value.0;
         let mut out = [0; 4];
         for i in 0..4 {
@@ -61,7 +91,7 @@ impl From<NodeID> for Vec<u64> {
     }
 }
 
-pub(crate) const fn parse_node_id_bytes(bytes: &[u8], start: usize) -> Option<NodeID> {
+pub(crate) const fn parse_pub_key_bytes(bytes: &[u8], start: usize) -> Option<PubKey> {
     let mut result = [0u8; 32];
     let mut i = 0;
     while i < 64 {
@@ -76,33 +106,33 @@ pub(crate) const fn parse_node_id_bytes(bytes: &[u8], start: usize) -> Option<No
         result[i / 2] = (high << 4) | low;
         i += 2;
     }
-    Some(NodeID(result))
+    Some(PubKey(result))
 }
 
 #[wasm_bindgen]
-impl NodeID {
-    /// Create a new NodeID instance from a byte array.
+impl PubKey {
+    /// Create a new PubKey instance from a byte array.
     #[wasm_bindgen(constructor)]
     #[allow(unused)]
     pub fn new(bytes: &[u8]) -> Self {
         if bytes.len() != 32 {
             panic!(
-                "NodeID must be initialized with exactly 32 bytes, got {}",
+                "PubKey must be initialized with exactly 32 bytes, got {}",
                 bytes.len()
             );
         }
         let mut hash: [u8; 32] = [0; 32];
         hash.copy_from_slice(bytes);
-        NodeID(hash)
+        PubKey(hash)
     }
 
-    /// Convert this NodeID into an OkId
+    /// Convert this PubKey into an OkId
     #[wasm_bindgen(js_name = intoOkId)]
     #[allow(unused)]
     pub fn into_okid(self) -> OkId {
         OkId {
-            hash_type: super::BinaryType::NodeID,
-            digest: super::Digest::NodeID(self),
+            hash_type: super::BinaryType::PubKey,
+            digest: super::Digest::PubKey(self),
         }
     }
 }

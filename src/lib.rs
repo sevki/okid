@@ -43,9 +43,8 @@ pub mod macros;
 pub mod blake3;
 /// fingerprint module
 pub mod fingerprint;
-#[cfg(feature = "node_id")]
-/// nodeid module
-pub mod node_id;
+/// pubkey module
+pub mod pub_key;
 #[deprecated(
     since = "0.14.0",
     note = "Sha1 is not considered secure anymore, use sha2 or sha3 instead"
@@ -95,9 +94,8 @@ pub(crate) enum BinaryType {
     Uuid = 1 << 5,
     // Fingerprint
     Fingerprint = 1 << 6,
-    #[cfg(feature = "node_id")]
-    // NodeID
-    NodeID = 1 << 7,
+    // PubKey
+    PubKey = 1 << 7,
 }
 
 impl FromStr for BinaryType {
@@ -119,8 +117,7 @@ impl FromStr for BinaryType {
             #[cfg(feature = "uuid")]
             "uuid" => Ok(Self::Uuid),
             "fingerprint" => Ok(Self::Fingerprint),
-            #[cfg(feature = "node_id")]
-            "node_id" => Ok(Self::NodeID),
+            "pub_key" => Ok(Self::PubKey),
             _ => Err(Error::InvalidHashType),
         }
     }
@@ -142,8 +139,7 @@ impl From<char> for BinaryType {
             #[cfg(feature = "uuid")]
             'i' => Self::Uuid,
             'f' => Self::Fingerprint,
-            #[cfg(feature = "node_id")]
-            'n' => Self::NodeID,
+            'p' => Self::PubKey,
             _ => Self::Unknown,
         }
     }
@@ -166,8 +162,7 @@ impl BinaryType {
             BinaryType::Uuid => 'i',
             BinaryType::Fingerprint => 'f',
             BinaryType::Unknown => '0',
-            #[cfg(feature = "node_id")]
-            BinaryType::NodeID => 'n',
+            BinaryType::PubKey => 'p',
         }
     }
 }
@@ -189,8 +184,7 @@ impl Display for BinaryType {
             BinaryType::Uuid => write!(f, "uuid"),
             BinaryType::Unknown => write!(f, "unknown"),
             BinaryType::Fingerprint => write!(f, "fingerprint"),
-            #[cfg(feature = "node_id")]
-            BinaryType::NodeID => write!(f, "nodeid"),
+            BinaryType::PubKey => write!(f, "pubkey"),
         }
     }
 }
@@ -344,10 +338,8 @@ impl PartialEq for OkId {
             (Digest::Uuid(_uuid), _) => false,
             (Digest::Fingerprint(a), Digest::Fingerprint(b)) => a == b,
             (Digest::Fingerprint(_fingerprint), _) => false,
-            #[cfg(feature = "node_id")]
-            (Digest::NodeID(a), Digest::NodeID(b)) => a == b,
-            #[cfg(feature = "node_id")]
-            (Digest::NodeID(_node_id), _) => false,
+            (Digest::PubKey(a), Digest::PubKey(b)) => a == b,
+            (Digest::PubKey(_pub_key), _) => false,
         }
     }
 }
@@ -392,9 +384,8 @@ impl Hash for OkId {
                 state.write_u8(b'f');
                 d.0.get().hash(state);
             }
-            #[cfg(feature = "node_id")]
-            Digest::NodeID(d) => {
-                state.write_u8(b'n');
+            Digest::PubKey(d) => {
+                state.write_u8(b'p');
                 d.0.hash(state);
             }
         }
@@ -487,10 +478,9 @@ fn parse_okid(s: &str) -> Result<OkId, Error> {
             hash_type,
             digest: Digest::Fingerprint(rest.parse()?),
         }),
-        #[cfg(feature = "node_id")]
-        BinaryType::NodeID => Ok(OkId {
+        BinaryType::PubKey => Ok(OkId {
             hash_type,
-            digest: Digest::NodeID(rest.parse()?),
+            digest: Digest::PubKey(rest.parse()?),
         }),
     }
 }
@@ -514,8 +504,7 @@ enum Digest {
     #[cfg(feature = "uuid")]
     Uuid(crate::uuid::Uuid),
     Fingerprint(crate::fingerprint::Fingerprint),
-    #[cfg(feature = "node_id")]
-    NodeID(crate::node_id::NodeID),
+    PubKey(crate::pub_key::PubKey),
 }
 
 impl Display for OkId {
@@ -536,8 +525,7 @@ impl Display for OkId {
             #[cfg(feature = "uuid")]
             Digest::Uuid(uuid) => uuid.fmt(f),
             Digest::Fingerprint(fingerprint) => fingerprint.fmt(f),
-            #[cfg(feature = "node_id")]
-            Digest::NodeID(node_id) => std::fmt::Display::fmt(node_id, f),
+            Digest::PubKey(pub_key) => std::fmt::Display::fmt(pub_key, f),
         }
     }
 }
@@ -560,8 +548,7 @@ impl std::fmt::Debug for OkId {
             #[cfg(feature = "uuid")]
             Digest::Uuid(uuid) => std::fmt::Display::fmt(uuid, f),
             Digest::Fingerprint(fingerprint) => std::fmt::Display::fmt(fingerprint, f),
-            #[cfg(feature = "node_id")]
-            Digest::NodeID(node_id) => std::fmt::Display::fmt(node_id, f),
+            Digest::PubKey(pub_key) => std::fmt::Display::fmt(pub_key, f),
         }
     }
 }
@@ -619,8 +606,7 @@ impl OkId {
             BinaryType::Ulid => b'u',
             #[cfg(feature = "uuid")]
             BinaryType::Uuid => b'i',
-            #[cfg(feature = "node_id")]
-            BinaryType::NodeID => b'n',
+            BinaryType::PubKey => b'p',
 
             BinaryType::Fingerprint => b'f',
         };
@@ -654,12 +640,11 @@ impl OkId {
                     i += 1;
                 }
             }
-            #[cfg(feature = "node_id")]
-            Digest::NodeID(node_id) => {
-                let node_id_bytes = node_id.0;
+            Digest::PubKey(pub_key) => {
+                let pub_key_bytes = pub_key.0;
                 let mut i = 0;
-                while i < node_id_bytes.len() {
-                    bytes[i + 1] = node_id_bytes[i];
+                while i < pub_key_bytes.len() {
+                    bytes[i + 1] = pub_key_bytes[i];
                     i += 1;
                 }
             }
@@ -736,8 +721,7 @@ const fn parse_okid_bytes(bytes: &[u8]) -> Option<OkId> {
         #[cfg(feature = "uuid")]
         b'i' => BinaryType::Uuid,
         b'f' => BinaryType::Fingerprint,
-        #[cfg(feature = "node_id")]
-        b'n' => BinaryType::NodeID,
+        b'p' => BinaryType::PubKey,
         _ => return None,
     };
 
@@ -853,16 +837,15 @@ const fn parse_okid_bytes(bytes: &[u8]) -> Option<OkId> {
                 None => None,
             }
         }
-        #[cfg(feature = "node_id")]
-        BinaryType::NodeID => {
+        BinaryType::PubKey => {
             if bytes.len() != content_start + 64 {
                 // type + separator + 64 hex chars
                 return None;
             }
-            match node_id::parse_node_id_bytes(bytes, content_start) {
+            match pub_key::parse_pub_key_bytes(bytes, content_start) {
                 Some(digest) => Some(OkId {
                     hash_type,
-                    digest: Digest::NodeID(digest),
+                    digest: Digest::PubKey(digest),
                 }),
                 None => None,
             }

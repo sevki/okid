@@ -45,9 +45,8 @@ impl Serialize for OkId {
                 state.serialize_field("digest", &fingerprint.0.get().to_string())?;
                 state.end()
             }
-            #[cfg(feature = "node_id")]
-            Digest::NodeID(node_id) => {
-                state.serialize_field("digest", hex::encode(node_id.0).as_str())?;
+            Digest::PubKey(pub_key) => {
+                state.serialize_field("digest", hex::encode(pub_key.0).as_str())?;
                 state.end()
             }
         }
@@ -140,10 +139,9 @@ impl<'de> Visitor<'de> for OkIdVisitor {
                     serde::de::Error::custom(format!("Invalid fingerprint: {}", e))
                 })?),
             )),
-            #[cfg(feature = "node_id")]
-            BinaryType::NodeID => Digest::NodeID(
-                crate::node_id::NodeID::from_str(&digest_str)
-                    .map_err(|_| serde::de::Error::custom("Invalid NodeID digest length"))?,
+            BinaryType::PubKey => Digest::PubKey(
+                crate::pub_key::PubKey::from_str(&digest_str)
+                    .map_err(|_| serde::de::Error::custom("Invalid PubKey digest length"))?,
             ),
         };
 
