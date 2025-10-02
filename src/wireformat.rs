@@ -24,8 +24,7 @@ impl jetstream_wireformat::WireFormat for OkId {
             #[cfg(feature = "uuid")]
             Digest::Uuid(_uuid) => 128 / 8,
             Digest::Fingerprint(_fingerprint) => 64 / 8,
-            #[cfg(feature = "node_id")]
-            Digest::NodeID(_node_id) => 32,
+            Digest::PubKey(_pub_key) => 32,
 
         }
     }
@@ -51,8 +50,7 @@ impl jetstream_wireformat::WireFormat for OkId {
             Digest::Fingerprint(fingerprint) => {
                 writer.write_all(fingerprint.0.as_bytes())?;
             }
-            #[cfg(feature = "node_id")]
-            Digest::NodeID(node_id) => writer.write_all(&node_id.0)?,
+            Digest::PubKey(pub_key) => writer.write_all(&pub_key.0)?,
         }
 
         Ok(())
@@ -125,13 +123,12 @@ impl jetstream_wireformat::WireFormat for OkId {
                     digest: Digest::Fingerprint(crate::fingerprint::Fingerprint(U64::new(data))),
                 })
             }
-            #[cfg(feature = "node_id")]
-            BinaryType::NodeID => {
+            BinaryType::PubKey => {
                 let mut buf = [0; 32];
                 reader.read_exact(&mut buf)?;
                 Ok(OkId {
-                    hash_type: BinaryType::NodeID,
-                    digest: Digest::NodeID(crate::node_id::NodeID(buf)),
+                    hash_type: BinaryType::PubKey,
+                    digest: Digest::PubKey(crate::pub_key::PubKey(buf)),
                 })
             }
         }

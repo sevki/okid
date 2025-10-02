@@ -114,7 +114,7 @@ fn run_all_tests(sh: &Shell) -> Result<()> {
 
     // Run Rust tests
     println!("Running Rust tests...");
-    cmd!(sh, "cargo test --features sha2,blake3,uuid,ulid,node_id").run()?;
+    cmd!(sh, "cargo test --features sha2,blake3,uuid,ulid,iroh,pkarr").run()?;
 
     println!("All tests passed!");
     Ok(())
