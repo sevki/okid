@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0](https://github.com/sevki/okid/compare/v0.18.0...v0.19.0) (2025-10-02)
+
+
+### Features
+
+* rename node_id to pub_key ([beca756](https://github.com/sevki/okid/commit/beca75646ca1cf8f854363aab10d77b3f8d4c74f))
+
 ## [0.18.0](https://github.com/sevki/okid/compare/v0.17.0...v0.18.0) (2025-09-29)
 
 

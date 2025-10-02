@@ -2758,7 +2758,7 @@ dependencies = [
 
 [[package]]
 name = "okid"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "async-graphql",
  "blake3",
@@ -5257,7 +5257,7 @@ checksum = "32ac00cd3f8ec9c1d33fb3e7958a82df6989c42d747bd326c822b1d625283547"
 
 [[package]]
 name = "xtask"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "anyhow",
  "clap",
