@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.1](https://github.com/sevki/okid/compare/v0.19.0...v0.19.1) (2025-10-03)
+
+
+### Bug Fixes
+
+* jetstream version ([a46acea](https://github.com/sevki/okid/commit/a46acea4ecd685d4a2ec9e0d25af3bc3985970df))
+
 ## [0.19.0](https://github.com/sevki/okid/compare/v0.18.0...v0.19.0) (2025-10-02)
 
 
