@@ -436,7 +436,7 @@ impl FromStr for OkId {
 // the string should be in the format of <hash_type><digest>
 fn parse_okid(s: &str) -> Result<OkId, Error> {
     let mut chars = s.chars();
-    let hash_type: BinaryType = chars.next().unwrap().into();
+    let hash_type: BinaryType = chars.next().ok_or(Error::InvalidFormat)?.into();
     // eat the separator
     if chars.next() != Some(SEPARATOR) {
         return Err(Error::InvalidFormat);
