@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0](https://github.com/sevki/okid/compare/v0.19.1...v0.20.0) (2025-10-06)
+
+
+### Features
+
+* add fuzzing ([9a251a8](https://github.com/sevki/okid/commit/9a251a810720196de16238115cdd0ae672a3c0e1))
+
 ## [0.19.1](https://github.com/sevki/okid/compare/v0.19.0...v0.19.1) (2025-10-03)
 
 
