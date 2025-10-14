@@ -2220,9 +2220,9 @@ checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
 name = "jetstream_macros"
-version = "9.1.0"
+version = "9.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db05351d37e4a0ed192c3de8e3412f5de6ddae627fd971ad13f03c74247ec87c"
+checksum = "2397bcc2b6e91c73ce5ba27b6b64d371eba2697d43b43e3167a49ef1f78ae639"
 dependencies = [
  "convert_case",
  "lazy_static",
@@ -2234,9 +2234,9 @@ dependencies = [
 
 [[package]]
 name = "jetstream_wireformat"
-version = "9.1.0"
+version = "9.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c33ec715a9d827cc86db5419c23d48153e7c8137bf7e520a6ef84d97b2a70b45"
+checksum = "0ab22b77ebe424f14c251ebed836be4d98095284e2f104ef9e00893bd9016308"
 dependencies = [
  "bytes",
  "futures",
