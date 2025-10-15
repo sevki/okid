@@ -1,6 +1,9 @@
 [workspace]
-members = [".", "xtask"]
-exclude = ["fuzz"]
+members = [".", "xtask","fuzz"]
+exclude = []
+
+[workspace.dependencies]
+jetstream_wireformat = {version = "9.3.0", default-features = false}
 
 [package]
 name = "okid"
@@ -37,13 +40,12 @@ pkarr = { version = "5.0.0", optional = true }
 ed25519-dalek = "2.2.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-jetstream_wireformat = "9.2.0"
+jetstream_wireformat = {workspace = true}
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-jetstream_wireformat = { version = "9.1.0", default-features = false, features = [
+jetstream_wireformat = { workspace = true, default-features = false, features = [
     "std",
 ] }
 getrandom = { version = "0.3.3", features = ["wasm_js"] }
-
 
 [features]
 default = ["sha2", "sha3", "blake3", "uuid", "ulid"]
@@ -67,7 +69,6 @@ insta = { version = "1.42.2", features = ["yaml"] }
 [[bin]]
 name = "oksecret"
 path = "src/main.rs"
-
 
 [lib]
 name = "okid"
