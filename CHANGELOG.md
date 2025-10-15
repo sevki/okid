@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.1](https://github.com/sevki/okid/compare/v0.20.0...v0.20.1) (2025-10-15)
+
+
+### Bug Fixes
+
+* jetstream_wireformat consistent in the Cargo.toml ([b80d0d7](https://github.com/sevki/okid/commit/b80d0d74bcbb92323d0b84f3cd675f1a537b0fde))
+
 ## [0.20.0](https://github.com/sevki/okid/compare/v0.19.1...v0.20.0) (2025-10-06)
 
 
