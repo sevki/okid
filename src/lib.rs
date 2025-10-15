@@ -5,6 +5,7 @@
 #![deny(missing_docs)]
 
 use bubblebabble::bubblebabble;
+use ed25519_dalek::ed25519;
 use wasm_bindgen::prelude::*;
 
 #[cfg(feature = "openapi")]
@@ -67,7 +68,7 @@ pub mod uuid;
 
 mod serde;
 
-#[derive(Copy, Clone, Debug, Serialize, Immutable, Unaligned, IntoBytes)]
+#[derive(Copy, Clone, Debug, Serialize, Immutable, Unaligned, IntoBytes, PartialEq)]
 #[repr(u8)]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum BinaryType {
@@ -403,6 +404,10 @@ pub enum Error {
     Hex(hex::FromHexError),
     /// Invalid format
     InvalidFormat,
+    /// Invalid signature
+    InvalidSignature(String),
+    /// Invalid type
+    InvalidType,
 }
 
 impl std::error::Error for Error {}
@@ -414,7 +419,22 @@ impl Display for Error {
             Error::InvalidHashType => write!(f, "Invalid hash type"),
             Error::Hex(e) => write!(f, "Hex error: {}", e),
             Error::InvalidFormat => write!(f, "Invalid format"),
+            Error::InvalidSignature(e) => write!(f, "Invalid signature: {}", e),
+            Error::InvalidType => write!(f, "Invalid type"),
         }
+    }
+}
+
+#[cfg(feature = "iroh")]
+impl From<iroh_base::SignatureError> for Error {
+    fn from(value: iroh_base::SignatureError) -> Self {
+        Error::InvalidSignature(value.to_string())
+    }
+}
+
+impl From<ed25519::signature::Error> for Error {
+    fn from(e: ed25519::signature::Error) -> Self {
+        Error::InvalidSignature(e.to_string())
     }
 }
 
