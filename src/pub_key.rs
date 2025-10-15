@@ -53,6 +53,20 @@ impl From<iroh::NodeId> for OkId {
         }
     }
 }
+#[cfg(feature = "iroh")]
+impl TryFrom<OkId> for iroh::NodeId {
+    type Error = super::Error;
+
+    fn try_from(value: OkId) -> Result<Self, Self::Error> {
+        if value.hash_type != super::BinaryType::PubKey {
+            return Err(super::Error::InvalidType);
+        }
+        match value.digest {
+            super::Digest::PubKey(pub_key) => Ok(iroh::NodeId::from_bytes(&pub_key.0)?),
+            _ => Err(super::Error::InvalidType),
+        }
+    }
+}
 
 #[cfg(feature = "iroh")]
 impl super::IntoOkId for iroh::NodeId {}
