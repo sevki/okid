@@ -30,11 +30,3 @@ jobs:
 
       - name: Build with wasm-pack
         run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --target web
-
-      - name: Publish to npm
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          cd pkg
-          npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
