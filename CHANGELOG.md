@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.0](https://github.com/sevki/okid/compare/v0.20.1...v0.21.0) (2025-10-15)
+
+
+### Features
+
+* try_from for pub_key ([7c5206d](https://github.com/sevki/okid/commit/7c5206dc8972f6ce73707e79ac69bae5c7721b48))
+
 ## [0.20.1](https://github.com/sevki/okid/compare/v0.20.0...v0.20.1) (2025-10-15)
 
 
