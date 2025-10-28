@@ -66,8 +66,8 @@ impl From<Ulid> for Vec<u64> {
         let data = value.0;
         let mut buf = [0; 16];
         buf.copy_from_slice(data.as_bytes());
-        let mut out = [0; 8];
-        for i in 0..8 {
+        let mut out = [0; 2];
+        for i in 0..2 {
             out[i] = u64::from_le_bytes(buf[i * 8..(i + 1) * 8].try_into().unwrap());
         }
         out.to_vec()
