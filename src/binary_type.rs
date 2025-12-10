@@ -6,7 +6,9 @@ use zerocopy::{Immutable, IntoBytes, Unaligned};
 
 use crate::error::Error;
 
-#[derive(Copy, Clone, Debug, Serialize, Immutable, Unaligned, IntoBytes, PartialEq)]
+#[derive(
+    Copy, Clone, Debug, Serialize, Immutable, Unaligned, IntoBytes, PartialEq, Eq, PartialOrd, Ord,
+)]
 #[repr(u8)]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum BinaryType {

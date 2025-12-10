@@ -1,3 +1,4 @@
+#![cfg(target_arch = "wasm32")]
 use worker::{
     crypto::{DigestStream, DigestStreamAlgorithm},
     worker_sys::web_sys,
