@@ -2239,9 +2239,9 @@ dependencies = [
 
 [[package]]
 name = "jetstream_wireformat"
-version = "9.3.0"
+version = "9.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b6c49fa53535c1902848e92a83b89c52de3d0e99c3ad9cfa26806abf8dd81e2"
+checksum = "23908869225c9c5d94d54afe453c9dfe0b7a6cccaae3b1438e3f3a628fbdf6b0"
 dependencies = [
  "bytes",
  "getrandom 0.2.16",
@@ -2252,7 +2252,7 @@ dependencies = [
  "okstd",
  "paste",
  "time",
- "tokio",
+ "url",
  "wasm-bindgen",
  "web-sys",
  "zerocopy",
