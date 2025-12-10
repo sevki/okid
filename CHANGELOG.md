@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/sevki/okid/compare/v0.21.0...v0.22.0) (2025-11-08)
+
+
+### Features
+
+* hmac helpers and worker extensions ([20d1e36](https://github.com/sevki/okid/commit/20d1e368bb0cacdae98ae7cbfdd6a5c6127a5e60))
+
 ## [0.21.0](https://github.com/sevki/okid/compare/v0.20.1...v0.21.0) (2025-10-15)
 
 

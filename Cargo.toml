@@ -7,7 +7,7 @@ jetstream_wireformat = {version = "9.3.0", default-features = false}
 
 [package]
 name = "okid"
-version = "0.21.0"
+version = "0.22.0"
 edition = "2021"
 readme = "README.md"
 description = "A library for generating double clickable ids"
@@ -39,6 +39,7 @@ bubblebabble = "0.1.2"
 pkarr = { version = "5.0.0", optional = true }
 ed25519-dalek = "2.2.0"
 iroh-base = {version="0.93.2", optional = true}
+worker = { version = "0.6.7", optional = true }
 hmac = "0.12.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
