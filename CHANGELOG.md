@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.0](https://github.com/sevki/okid/compare/v0.22.0...v0.23.0) (2025-12-10)
+
+
+### Features
+
+* implement Ord for OkId and fix wasm32 target dependencies ([bc56373](https://github.com/sevki/okid/commit/bc56373a6b41d2c0e0150e6c660d11a36234c37c))
+
 ## [0.22.0](https://github.com/sevki/okid/compare/v0.21.0...v0.22.0) (2025-11-08)
 
 
