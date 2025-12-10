@@ -126,13 +126,31 @@ impl utoipa::ToSchema for OkId {
     }
 }
 
-impl PartialOrd for OkId {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+fn cmp_hashables(a: impl Hash, b: impl Hash) -> std::cmp::Ordering {
+    let mut hasher_a = DefaultHasher::new();
+    a.hash(&mut hasher_a);
+    let mut hasher_b = DefaultHasher::new();
+    b.hash(&mut hasher_b);
+    hasher_a.finish().cmp(&hasher_b.finish())
+}
+
+impl Ord for OkId {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let ord = self.hash_type.cmp(&other.hash_type);
+        if ord != std::cmp::Ordering::Equal {
+            return ord;
+        }
         match (&self.digest, &other.digest) {
             #[cfg(feature = "ulid")]
-            (Digest::Ulid(a), Digest::Ulid(b)) => a.0.get().partial_cmp(&b.0.get()),
-            _ => None,
+            (Digest::Ulid(a), Digest::Ulid(b)) => a.0.get().cmp(&b.0.get()),
+            _ => cmp_hashables(self, other),
         }
+    }
+}
+
+impl PartialOrd for OkId {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
     }
 }
 

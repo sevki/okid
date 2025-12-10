@@ -3,7 +3,15 @@ use std::hash::Hash;
 use zerocopy::{Immutable, IntoBytes, KnownLayout, Unaligned};
 
 #[derive(Debug, Clone, Copy, Immutable, KnownLayout)]
-#[impls(Immutable, IntoBytes, Hash, zerocopy::FromBytes, Unaligned, Eq)]
+#[impls(
+    Immutable,
+    IntoBytes,
+    Hash,
+    zerocopy::FromBytes,
+    Unaligned,
+    Eq,
+    PartialEq
+)]
 #[repr(C)]
 pub(crate) enum Digest {
     #[cfg(feature = "sha1")]

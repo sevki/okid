@@ -45,6 +45,7 @@ hmac = "0.12.1"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 jetstream_wireformat = {workspace = true}
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+worker = { version = "0.6.7", optional = true }
 jetstream_wireformat = { workspace = true, default-features = false, features = [
     "std",
 ] }
