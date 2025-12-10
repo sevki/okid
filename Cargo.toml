@@ -3,7 +3,7 @@ members = [".", "xtask","fuzz"]
 exclude = []
 
 [workspace.dependencies]
-jetstream_wireformat = {version = "9.3.0", default-features = false}
+jetstream_wireformat = {version = "9.5.0", default-features = false}
 
 [package]
 name = "okid"
