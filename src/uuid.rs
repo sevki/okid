@@ -55,7 +55,7 @@ impl TryFrom<OkId> for uuid::Uuid {
     fn try_from(value: OkId) -> Result<Self, Self::Error> {
         match value.digest {
             super::Digest::Uuid(uuid) => Ok(uuid.into()),
-            _ => Err(crate::Error::InvalidHashType),
+            _ => Err(crate::Error::InvalidDigestType),
         }
     }
 }
@@ -91,7 +91,7 @@ impl Uuid {
     }
 
     /// Create a new UUID from a string representation.
-    #[wasm_bindgen(js_name = intoOkId)]
+    #[wasm_bindgen(js_name = toOkId)]
     #[allow(unused)]
     pub fn into_okid(self) -> OkId {
         OkId {

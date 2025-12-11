@@ -56,7 +56,7 @@ impl TryFrom<OkId> for ulid::Ulid {
     fn try_from(value: OkId) -> Result<Self, Self::Error> {
         match value.digest {
             super::Digest::Ulid(ulid) => Ok(ulid.into()),
-            _ => Err(crate::Error::InvalidHashType),
+            _ => Err(crate::Error::InvalidDigestType),
         }
     }
 }

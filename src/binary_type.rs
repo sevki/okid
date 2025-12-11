@@ -59,7 +59,7 @@ impl FromStr for BinaryType {
             "uuid" => Ok(Self::Uuid),
             "fingerprint" => Ok(Self::Fingerprint),
             "pub_key" => Ok(Self::PubKey),
-            _ => Err(Error::InvalidHashType),
+            _ => Err(Error::InvalidDigestType),
         }
     }
 }

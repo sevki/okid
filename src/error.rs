@@ -8,7 +8,7 @@ pub enum Error {
     /// The length of the OkId is invalid
     InvalidLength,
     /// The hash type is invalid
-    InvalidHashType,
+    InvalidDigestType,
     /// Error parsing hex
     Hex(hex::FromHexError),
     /// Invalid format
@@ -25,7 +25,7 @@ impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::InvalidLength => write!(f, "Invalid length"),
-            Error::InvalidHashType => write!(f, "Invalid hash type"),
+            Error::InvalidDigestType => write!(f, "Invalid hash type"),
             Error::Hex(e) => write!(f, "Hex error: {}", e),
             Error::InvalidFormat => write!(f, "Invalid format"),
             Error::InvalidSignature(e) => write!(f, "Invalid signature: {}", e),

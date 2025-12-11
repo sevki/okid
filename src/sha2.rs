@@ -96,7 +96,7 @@ impl Sha256 {
         Sha256(hash)
     }
 
-    #[wasm_bindgen(js_name = intoOkId)]
+    #[wasm_bindgen(js_name = toOkId)]
     #[allow(unused)]
     pub fn into_okid(self) -> OkId {
         OkId {

@@ -141,12 +141,36 @@ impl PubKey {
     }
 
     /// Convert this PubKey into an OkId
-    #[wasm_bindgen(js_name = intoOkId)]
+    #[wasm_bindgen(js_name = toOkId)]
     #[allow(unused)]
     pub fn into_okid(self) -> OkId {
         OkId {
             hash_type: super::BinaryType::PubKey,
             digest: super::Digest::PubKey(self),
+        }
+    }
+}
+
+impl TryFrom<OkId> for PubKey {
+    type Error = super::Error;
+
+    fn try_from(value: OkId) -> Result<Self, Self::Error> {
+        match value.digest {
+            crate::Digest::PubKey(pub_key) => Ok(pub_key),
+            _ => Err(super::Error::InvalidDigestType),
+        }
+    }
+}
+
+#[wasm_bindgen]
+impl OkId {
+    #[wasm_bindgen(js_name = toPubKey)]
+    #[allow(unused)]
+    /// Convert this OkId into a PubKey
+    pub fn into_pubkey_string(self) -> Result<String, JsError> {
+        match self.digest {
+            crate::Digest::PubKey(pub_key) => Ok(hex::encode(pub_key.0)),
+            _ => Err(JsError::new("Invalid digest type")),
         }
     }
 }
