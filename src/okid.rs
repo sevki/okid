@@ -142,7 +142,7 @@ impl schemars::JsonSchema for OkId {
             "type": "string",
             "format": "okid",
             "description": format!(
-                "OkId v{} - A double clickable representation of binary data. See https://docs.rs/okid/{}",
+                "[OkId v{}](https://docs.rs/okid/{})",
                 version, version
             ),
             "examples": [
