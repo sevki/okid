@@ -7,11 +7,13 @@
 mod binary_type;
 mod digest;
 mod error;
+pub mod hmac;
 mod okid;
 mod parse;
+#[cfg(feature = "jsonschema")]
+mod schema;
 mod secret;
 mod size;
-pub mod hmac;
 mod uint;
 mod wireformat;
 

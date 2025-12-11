@@ -292,8 +292,7 @@ pub struct File(pub OkId, pub ChunkMap);
 #[test]
 fn serde_file_sha1() {
     use {
-        jetstream_wireformat::wire_format_extensions::ConvertWireFormat,
-        sha1::Digest as sha1digest,
+        jetstream_wireformat::wire_format_extensions::ConvertWireFormat, sha1::Digest as sha1digest,
     };
 
     let mut hasher = sha1::Sha1::new();
@@ -474,4 +473,14 @@ fn test_wireformat_decode_works() {
     let bytes = parsed.into_bytes::<33>();
     buf.extend_from_slice(&bytes);
     OkId::decode(&mut buf.as_slice()).unwrap();
+}
+
+#[cfg(feature = "jsonschema")]
+#[test]
+fn test_schema_serialization_works() {
+    use insta::{assert_debug_snapshot, assert_snapshot};
+    use schemars::schema_for;
+
+    let my_schema = schema_for!(OkId);
+    assert_snapshot!(serde_json::to_string_pretty(&my_schema).unwrap());
 }
