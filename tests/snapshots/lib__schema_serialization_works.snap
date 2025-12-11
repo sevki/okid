@@ -5,7 +5,7 @@ expression: "serde_json::to_string_pretty(&my_schema).unwrap()"
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "OkId",
-  "description": "[OkId v0.23.0](https://docs.rs/okid/0.23.0)",
+  "description": "[OkId v[VERSION]](https://docs.rs/okid/[VERSION])",
   "type": "string",
   "format": "okid",
   "examples": [

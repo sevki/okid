@@ -70,7 +70,7 @@ worker = ["dep:worker"]
 jsonschema = ["dep:schemars"]
 
 [dev-dependencies]
-insta = { version = "1.42.2", features = ["yaml"] }
+insta = { version = "1.42.2", features = ["filters", "yaml"] }
 
 [[bin]]
 name = "oksecret"

@@ -478,9 +478,13 @@ fn test_wireformat_decode_works() {
 #[cfg(feature = "jsonschema")]
 #[test]
 fn test_schema_serialization_works() {
-    use insta::{assert_debug_snapshot, assert_snapshot};
     use schemars::schema_for;
 
     let my_schema = schema_for!(OkId);
-    assert_snapshot!(serde_json::to_string_pretty(&my_schema).unwrap());
+    let mut settings = insta::Settings::clone_current();
+    // Filter out version numbers to avoid snapshot churn on version bumps
+    settings.add_filter(r"\d+\.\d+\.\d+", "[VERSION]");
+    settings.bind(|| {
+        insta::assert_snapshot!(serde_json::to_string_pretty(&my_schema).unwrap());
+    });
 }
