@@ -54,7 +54,7 @@ impl TryFrom<OkId> for u64 {
     fn try_from(value: OkId) -> Result<Self, Self::Error> {
         match value.digest {
             Digest::Fingerprint(Fingerprint(value)) => Ok(value.get()),
-            _ => Err(super::Error::InvalidHashType),
+            _ => Err(super::Error::InvalidDigestType),
         }
     }
 }

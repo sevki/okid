@@ -1,9 +1,8 @@
 use crate::binary_type::BinaryType;
-use crate::digest::Digest;
-use crate::error::Error;
-use crate::{fingerprint, pub_key, OkId, SEPARATOR, SEPARATOR_BYTES, SEPARATOR_BYTES_LEN};
 #[cfg(feature = "blake3")]
 use crate::blake3;
+use crate::digest::Digest;
+use crate::error::Error;
 #[cfg(feature = "sha1")]
 use crate::sha1;
 #[cfg(feature = "sha2")]
@@ -14,6 +13,7 @@ use crate::sha3;
 use crate::ulid;
 #[cfg(feature = "uuid")]
 use crate::uuid;
+use crate::{fingerprint, pub_key, OkId, SEPARATOR, SEPARATOR_BYTES, SEPARATOR_BYTES_LEN};
 
 pub(crate) fn parse_okid(s: &str) -> Result<OkId, Error> {
     let mut chars = s.chars();
@@ -53,7 +53,7 @@ pub(crate) fn parse_okid(s: &str) -> Result<OkId, Error> {
             hash_type,
             digest: Digest::Uuid(rest.parse()?),
         }),
-        BinaryType::Unknown => Err(Error::InvalidHashType),
+        BinaryType::Unknown => Err(Error::InvalidDigestType),
         BinaryType::Fingerprint => Ok(OkId {
             hash_type,
             digest: Digest::Fingerprint(rest.parse()?),
