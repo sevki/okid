@@ -475,3 +475,25 @@ fn test_wireformat_decode_works() {
     buf.extend_from_slice(&bytes);
     OkId::decode(&mut buf.as_slice()).unwrap();
 }
+
+#[cfg(feature = "schemars")]
+#[cfg(feature = "json")]
+#[test]
+fn test_schemars_schema_generation() {
+    use schemars::{schema_for, JsonSchema};
+
+    // Generate schema for OkId
+    let schema = schema_for!(OkId);
+    
+    // Verify schema name
+    assert_eq!(OkId::schema_name(), "OkId");
+    
+    // Convert schema to JSON for verification
+    let schema_json = serde_json::to_string_pretty(&schema).unwrap();
+    println!("Generated schema:\n{}", schema_json);
+    
+    // Verify it contains expected fields
+    assert!(schema_json.contains("okid"), "Schema should mention 'okid' format");
+    assert!(schema_json.contains("string"), "Schema should specify string type");
+    assert!(schema_json.contains("OkId"), "Schema should contain type name");
+}
