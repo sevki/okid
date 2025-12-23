@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.0](https://github.com/sevki/okid/compare/v0.25.0...v0.26.0) (2025-12-23)
+
+
+### Features
+
+* put wasm-bindgen behind a feature flag ([8481fba](https://github.com/sevki/okid/commit/8481fba9837581f20619a9e5a97512d2acba4c13))
+
 ## [0.25.0](https://github.com/sevki/okid/compare/v0.24.0...v0.25.0) (2025-12-23)
 
 
