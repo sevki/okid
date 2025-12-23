@@ -4,14 +4,14 @@ use crate::{BinaryType, Digest, Error, OkId};
 
 use hmac::Mac;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(wasm_bindgen)]
 use wasm_bindgen::prelude::*;
 
 #[cfg(feature = "sha2")]
 type HmacSha256 = hmac::Hmac<sha2::Sha256>;
 
 /// Algorithms supported by the HMAC helpers.
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg_attr(wasm_bindgen, wasm_bindgen)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum HmacAlgorithm {

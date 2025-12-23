@@ -1,3 +1,4 @@
+#[cfg(wasm_bindgen)]
 use wasm_bindgen::prelude::*;
 use {
     crate::{uint::parse_u128, OkId},
@@ -5,7 +6,7 @@ use {
 };
 #[derive(Copy, Clone, ByteHash, ByteEq, Immutable, IntoBytes, FromBytes, Unaligned)]
 #[repr(C)]
-#[wasm_bindgen]
+#[cfg_attr(wasm_bindgen, wasm_bindgen)]
 pub(super) struct Uuid(pub(super) U128<LittleEndian>);
 
 impl From<uuid::Uuid> for OkId {
@@ -81,6 +82,7 @@ pub(crate) const fn parse_uuid_bytes(bytes: &[u8], start: usize) -> Option<crate
     }
 }
 
+#[cfg(wasm_bindgen)]
 #[wasm_bindgen]
 impl Uuid {
     /// Create a new UUID from a string representation.

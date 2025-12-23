@@ -1,13 +1,14 @@
+#[cfg(wasm_bindgen)]
+use wasm_bindgen::prelude::*;
 use {
     crate::{hex_to_byte, OkId},
     std::{fmt::Display, str::FromStr},
-    wasm_bindgen::prelude::*,
     zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes, Unaligned},
 };
 
 #[derive(Copy, Clone, Debug, ByteEq, Immutable, IntoBytes, ByteHash, FromBytes, Unaligned)]
 #[repr(C)]
-#[wasm_bindgen]
+#[cfg_attr(wasm_bindgen, wasm_bindgen)]
 pub(super) struct PubKey(pub(crate) [u8; 32]);
 
 #[cfg(feature = "pkarr")]
@@ -123,6 +124,7 @@ pub(crate) const fn parse_pub_key_bytes(bytes: &[u8], start: usize) -> Option<Pu
     Some(PubKey(result))
 }
 
+#[cfg(wasm_bindgen)]
 #[wasm_bindgen]
 impl PubKey {
     /// Create a new PubKey instance from a byte array.
@@ -162,6 +164,7 @@ impl TryFrom<OkId> for PubKey {
     }
 }
 
+#[cfg(wasm_bindgen)]
 #[wasm_bindgen]
 impl OkId {
     #[wasm_bindgen(js_name = toPubKey)]

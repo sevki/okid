@@ -15,6 +15,7 @@
 //! ```
 
 use jetstream_wireformat::WireFormat;
+#[cfg(wasm_bindgen)]
 use wasm_bindgen::prelude::*;
 
 use crate::OkId;
@@ -27,10 +28,10 @@ const VS_RANGE_FE_MAX: u32 = 0xFE0F;
 const VS_RANGE_E01_MAX: u32 = 0xE01EF;
 const FE_RANGE_SIZE: u8 = 16;
 
-#[wasm_bindgen]
+#[cfg_attr(wasm_bindgen, wasm_bindgen)]
 impl OkId {
     /// Embed an OkId inside a "secret" emoji using variation selectors
-    #[wasm_bindgen(js_name = toDisplaySafe)]
+    #[cfg_attr(wasm_bindgen, wasm_bindgen(js_name = toDisplaySafe))]
     pub fn to_display_safe(self) -> String {
         let mut bytes = vec![];
         self.encode(&mut bytes).unwrap();
@@ -45,7 +46,7 @@ impl OkId {
     }
 
     /// Helper function to decode a display_safe encoded OkId
-    #[wasm_bindgen(js_name = fromDisplaySafe)]
+    #[cfg_attr(wasm_bindgen, wasm_bindgen(js_name = fromDisplaySafe))]
     pub fn from_display_safe(s: &str) -> Option<Self> {
         let bytes = decode_variation_selectors(s)?;
 

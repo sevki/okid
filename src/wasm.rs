@@ -1,3 +1,4 @@
+#![cfg(wasm_bindgen)]
 use std::collections::hash_map::DefaultHasher;
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
@@ -14,7 +15,6 @@ impl OkId {
         OkId::from_str(s).map_err(|e| JsError::new(&e.to_string()))
     }
 
-    #[cfg(feature = "wasm")]
     #[wasm_bindgen]
     /// Parse an OkId from a URL path
     pub fn from_path(u: web_sys::Url) -> Result<OkId, JsError> {

@@ -32,7 +32,7 @@ ulid = { version = "1.2.1", optional = true, features = ["uuid"] }
 utoipa = { version = "^5.4.0", optional = true }
 uuid = { version = "1.18.0", optional = true, features = ["js", "v4"] }
 zerocopy = { version = "0.8.26", features = ["derive"] }
-wasm-bindgen = "0.2.100"
+wasm-bindgen = {version = "0.2.100", optional = true}
 thiserror = "2.0.17"
 iroh = { version = "0.93.2", default-features = false, optional = true }
 bubblebabble = "0.1.2"
@@ -72,7 +72,7 @@ pkarr = ["dep:pkarr"]
 iroh = ["dep:iroh", "dep:iroh-base"]
 worker = ["dep:worker"]
 jsonschema = ["dep:schemars"]
-wasm = ["dep:js-sys","dep:web-sys"]
+wasm = ["dep:js-sys","dep:web-sys", "dep:wasm-bindgen"]
 
 [dev-dependencies]
 insta = { version = "1.42.2", features = ["filters", "yaml"] }
@@ -84,3 +84,6 @@ path = "src/main.rs"
 [lib]
 name = "okid"
 crate-type = ["cdylib", "rlib", "staticlib"]
+
+[build-dependencies]
+cfg_aliases = "0.2.1"
