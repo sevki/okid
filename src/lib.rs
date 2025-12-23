@@ -31,7 +31,7 @@ pub const SEPARATOR_BYTES: [u8; 2] = [203, 144];
 pub const SEPARATOR_BYTES_LEN: usize = 2;
 
 pub use crate::error::Error;
-pub use crate::okid::{path_safe, FromDigest, IntoOkId, OkId};
+pub use crate::okid::{to_ascii, FromDigest, IntoOkId, OkId};
 pub use crate::parse::const_parse_okid;
 
 pub(crate) use crate::binary_type::BinaryType;

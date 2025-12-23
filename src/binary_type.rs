@@ -87,6 +87,7 @@ impl From<char> for BinaryType {
 }
 
 impl BinaryType {
+    #[inline(always)]
     pub(crate) fn char_code(&self) -> char {
         *self as u8 as char
     }

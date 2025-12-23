@@ -17,6 +17,6 @@ fuzz_target!(|data: &[u8]| {
     if let Some(id) = okid::OkId::from_bubblebabble(data) {
         let _ = id.to_bubblebabble();
         let _ = id.to_string();
-        let _ = id.to_path_safe();
+        let _ = id.to_ascii();
     }
 });
