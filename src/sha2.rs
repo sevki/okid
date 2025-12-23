@@ -1,14 +1,15 @@
+#[cfg(wasm_bindgen)]
+use wasm_bindgen::prelude::*;
 use {
     crate::{hex_to_byte, OkId},
     sha2::Digest,
     std::{fmt::Display, str::FromStr},
-    wasm_bindgen::prelude::*,
     zerocopy::{ByteEq, ByteHash, FromBytes, Immutable, IntoBytes, Unaligned},
 };
 
 #[derive(Copy, Clone, Debug, ByteEq, Immutable, IntoBytes, ByteHash, FromBytes, Unaligned)]
 #[repr(C)]
-#[wasm_bindgen]
+#[cfg_attr(wasm_bindgen, wasm_bindgen)]
 pub(super) struct Sha256(pub(crate) [u8; 32]);
 
 impl From<sha2::Sha256> for OkId {
@@ -79,6 +80,7 @@ pub(crate) const fn parse_sha256_bytes(bytes: &[u8], start: usize) -> Option<cra
     Some(crate::sha2::Sha256(result))
 }
 
+#[cfg(wasm_bindgen)]
 #[wasm_bindgen]
 impl Sha256 {
     /// Create a new Sha256 instance from a byte array.

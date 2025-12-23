@@ -8,6 +8,7 @@ use std::borrow::Cow;
 
 use bubblebabble::bubblebabble;
 use digest::OutputSizeUser;
+#[cfg(wasm_bindgen)]
 use wasm_bindgen::prelude::*;
 use zerocopy::Immutable;
 
@@ -20,7 +21,7 @@ use crate::SEPARATOR;
 /// OkId is a double clickable representation of arbitrary binary data.
 #[derive(Clone, Copy, Immutable)]
 #[repr(C)]
-#[wasm_bindgen]
+#[cfg_attr(wasm_bindgen, wasm_bindgen)]
 pub struct OkId {
     pub(crate) hash_type: BinaryType,
     pub(crate) digest: Digest,
@@ -353,16 +354,16 @@ pub fn to_ascii(id: OkId) -> String {
     format!("1/{}/{}", id.hash_type.char_code(), id.digest)
 }
 
-#[wasm_bindgen]
+#[cfg_attr(wasm_bindgen, wasm_bindgen)]
 impl OkId {
     /// Convert any digest to bubblebabble format
-    #[wasm_bindgen(js_name = toBubblebabble)]
+    #[cfg_attr(wasm_bindgen, wasm_bindgen(js_name = toBubblebabble))]
     pub fn to_bubblebabble(&self) -> String {
         bubblebabble(&self.to_key())
     }
 
     /// Convert from stable babble
-    #[wasm_bindgen(js_name = fromBubblebabble)]
+    #[cfg_attr(wasm_bindgen, wasm_bindgen(js_name = fromBubblebabble))]
     pub fn from_bubblebabble(bytes: &[u8]) -> Option<Self> {
         bubblebabble::stablebabble(bytes).parse().ok()
     }

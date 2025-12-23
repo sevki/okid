@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: ["main"]
 
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -40,3 +45,11 @@ jobs:
         with:
           name: test-results
           path: target/nextest/ci/junit.xml
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Rust Tests
+          path: target/nextest/ci/junit.xml
+          reporter: java-junit
