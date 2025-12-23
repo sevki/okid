@@ -17,6 +17,8 @@ pub enum Error {
     InvalidSignature(String),
     /// Invalid type
     InvalidType,
+    /// No okid found
+    NotFound,
 }
 
 impl std::error::Error for Error {}
@@ -30,6 +32,7 @@ impl Display for Error {
             Error::InvalidFormat => write!(f, "Invalid format"),
             Error::InvalidSignature(e) => write!(f, "Invalid signature: {}", e),
             Error::InvalidType => write!(f, "Invalid type"),
+            Error::NotFound => write!(f, "No okid found"),
         }
     }
 }

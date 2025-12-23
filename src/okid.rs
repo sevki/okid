@@ -26,75 +26,6 @@ pub struct OkId {
     pub(crate) digest: Digest,
 }
 
-#[wasm_bindgen]
-impl OkId {
-    /// Parse an OkId from a string
-    #[wasm_bindgen(js_name = fromString)]
-    pub fn from_string(s: &str) -> Result<OkId, JsValue> {
-        OkId::from_str(s).map_err(|e| JsValue::from_str(&e.to_string()))
-    }
-
-    /// Convert the OkId to a string
-    #[wasm_bindgen(js_name = toString)]
-    pub fn js_to_string(&self) -> String {
-        format!("{}", self)
-    }
-
-    /// Get the hash type as a string
-    #[wasm_bindgen(js_name = hashType)]
-    pub fn hash_type(&self) -> String {
-        self.hash_type.to_string()
-    }
-
-    /// Convert to path-safe format
-    #[wasm_bindgen(js_name = toPathSafe)]
-    pub fn to_path_safe(&self) -> String {
-        pathsafe(*self)
-    }
-
-    /// Create an OkId from a SHA256 hash
-    #[cfg(feature = "sha2")]
-    #[wasm_bindgen(js_name = fromSha256)]
-    pub fn from_sha256(data: &[u8]) -> OkId {
-        use digest::Digest;
-        let mut hasher = ::sha2::Sha256::new();
-        hasher.update(data);
-        hasher.into()
-    }
-
-    /// Create an OkId from a Blake3 hash
-    #[cfg(feature = "blake3")]
-    #[wasm_bindgen(js_name = fromBlake3)]
-    pub fn from_blake3(data: &[u8]) -> OkId {
-        let mut hasher = ::blake3::Hasher::new();
-        hasher.update(data);
-        hasher.into()
-    }
-
-    /// Create a new UUID-based OkId
-    #[cfg(feature = "uuid")]
-    #[wasm_bindgen(js_name = newUuid)]
-    pub fn new_uuid() -> OkId {
-        ::uuid::Uuid::new_v4().into()
-    }
-
-    /// Create a new ULID-based OkId
-    #[cfg(feature = "ulid")]
-    #[wasm_bindgen(js_name = newUlid)]
-    pub fn new_ulid() -> OkId {
-        ::ulid::Ulid::new().into()
-    }
-
-    /// Create a fingerprint OkId from data
-    #[wasm_bindgen(js_name = fingerprint)]
-    pub fn fingerprint(data: &[u8]) -> OkId {
-        use std::hash::Hash;
-        let mut hasher = DefaultHasher::new();
-        data.hash(&mut hasher);
-        hasher.finish().into()
-    }
-}
-
 #[cfg(feature = "graphql")]
 async_graphql::scalar!(OkId);
 
@@ -303,25 +234,15 @@ where
 }
 
 impl OkId {
-    /// Convert the OkId into a byte slice
+    /// Convert the OkId into a byte vector suitable for use as a key
     #[inline]
-    pub fn as_key(&self) -> &[u8] {
-        let fmtd = self.to_string();
-        let bytes = fmtd.as_bytes();
-        unsafe { std::slice::from_raw_parts(bytes.as_ptr(), bytes.len()) }
+    pub fn to_key(&self) -> Vec<u8> {
+        self.to_string().into_bytes()
     }
 }
 
 /// FromDigest trait, a common trait that OkId can be converted from
 pub trait FromDigest: OutputSizeUser + digest::Digest + IntoOkId + Send {}
-
-impl AsRef<[u8]> for OkId {
-    fn as_ref(&self) -> &[u8] {
-        let fmtd = self.to_string();
-        let bytes = fmtd.as_bytes();
-        unsafe { std::slice::from_raw_parts(bytes.as_ptr(), bytes.len()) }
-    }
-}
 
 impl OkId {
     /// Convert the OkId into a byte slice
@@ -422,7 +343,7 @@ impl OkId {
 }
 
 /// Create a path-safe string from an OkId
-pub fn pathsafe(id: OkId) -> String {
+pub fn path_safe(id: OkId) -> String {
     format!("1/{}", id.to_string().replace(SEPARATOR, "/"))
 }
 
@@ -431,12 +352,48 @@ impl OkId {
     /// Convert any digest to bubblebabble format
     #[wasm_bindgen(js_name = toBubblebabble)]
     pub fn to_bubblebabble(&self) -> String {
-        bubblebabble(self.as_ref())
+        bubblebabble(&self.to_key())
     }
 
     /// Convert from stable babble
     #[wasm_bindgen(js_name = fromBubblebabble)]
     pub fn from_bubblebabble(bytes: &[u8]) -> Option<Self> {
         bubblebabble::stablebabble(bytes).parse().ok()
+    }
+}
+
+impl TryFrom<&url::Url> for OkId {
+    type Error = crate::Error;
+
+    /// Parse an OkId from URL path segments.
+    ///
+    /// This will iterate through all path segments and return the first valid OkId found.
+    /// URL-encoded separators (e.g., `%CB%90`) are automatically decoded.
+    ///
+    /// # Example
+    /// ```
+    /// use okid::OkId;
+    /// use url::Url;
+    ///
+    /// let url = Url::parse("https://example.com/files/u%CB%904d3881627191c1d4236405ac98409b01").unwrap();
+    /// let okid = OkId::try_from(&url).unwrap();
+    /// ```
+    fn try_from(url: &url::Url) -> Result<Self, Self::Error> {
+        if let Some(segments) = url.path_segments() {
+            for segment in segments {
+                if let Ok(okid) = parse_okid(segment) {
+                    return Ok(okid);
+                }
+            }
+        }
+        Err(crate::Error::NotFound)
+    }
+}
+
+impl TryFrom<url::Url> for OkId {
+    type Error = crate::Error;
+
+    fn try_from(url: url::Url) -> Result<Self, Self::Error> {
+        OkId::try_from(&url)
     }
 }
