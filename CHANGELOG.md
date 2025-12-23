@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.25.0](https://github.com/sevki/okid/compare/v0.24.0...v0.25.0) (2025-12-23)
+
+
+### Features
+
+* from url paths ([519adf7](https://github.com/sevki/okid/commit/519adf72d2008426bc0bc826a67f65732f1e8f34))
+* pubkey to string ([a856833](https://github.com/sevki/okid/commit/a856833f99e86b8fff5a758b20703410ff9752d1))
+* wasm pubkey string and fix assert_filter ([4424f8e](https://github.com/sevki/okid/commit/4424f8e9d994c79b5de45150158a7c4ca8a4162e))
+
 ## [0.24.0](https://github.com/sevki/okid/compare/v0.23.0...v0.24.0) (2025-12-11)
 
 
