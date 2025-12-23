@@ -2,7 +2,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
 
-use super::path_safe;
+use crate::to_ascii;
 
 use super::OkId;
 
@@ -38,10 +38,10 @@ impl OkId {
         self.hash_type.to_string()
     }
 
-    /// Convert to path-safe format
-    #[wasm_bindgen(js_name = toPathSafe)]
-    pub fn to_path_safe(&self) -> String {
-        path_safe(*self)
+    /// Convert to ASCII/path-safe format
+    #[wasm_bindgen(js_name = toAscii)]
+    pub fn to_ascii(&self) -> String {
+        to_ascii(*self)
     }
 
     /// Create an OkId from a SHA256 hash

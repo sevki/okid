@@ -490,10 +490,18 @@ fn test_schema_serialization_works() {
     });
 }
 
+#[cfg(feature = "sha2")]
 #[test]
-fn test_parse_okid_from_real_url() {
-    // Real URL path from: https://cf-loro.sevki.workers.dev/u%CB%904d3881627191c1d4236405ac98409b01
-    let url =
-        Url::parse("https://cf-loro.sevki.workers.dev/u%CB%904d3881627191c1d4236405ac98409b01")
-            .unwrap();
+fn test_parse_okid_from_url() {
+    // SHA256 of "hello world" with URL-encoded separator (%CB%90 = ː)
+    let url = Url::parse(
+        "https://example.com/files/2%CB%90b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+    )
+    .unwrap();
+
+    let okid = OkId::try_from(&url).expect("should parse OkId from URL");
+    assert_eq!(
+        okid.to_string(),
+        format!("2{SEPARATOR}b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9")
+    );
 }

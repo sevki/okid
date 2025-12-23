@@ -343,8 +343,14 @@ impl OkId {
 }
 
 /// Create a path-safe string from an OkId
-pub fn path_safe(id: OkId) -> String {
-    format!("1/{}", id.to_string().replace(SEPARATOR, "/"))
+/// ```
+/// let okid = okid::okid!("bːfcca4276240cd3aa68d8fbb4917e8392c1166a3fcbf7c186b05e4599f38d391a");
+/// let path_safe = okid::to_ascii(okid);
+/// println!("{}", path_safe);
+/// assert_eq!(path_safe, "1/b/fcca4276240cd3aa68d8fbb4917e8392c1166a3fcbf7c186b05e4599f38d391a");
+/// ```
+pub fn to_ascii(id: OkId) -> String {
+    format!("1/{}/{}", id.hash_type.char_code(), id.digest)
 }
 
 #[wasm_bindgen]
@@ -381,7 +387,9 @@ impl TryFrom<&url::Url> for OkId {
     fn try_from(url: &url::Url) -> Result<Self, Self::Error> {
         if let Some(segments) = url.path_segments() {
             for segment in segments {
-                if let Ok(okid) = parse_okid(segment) {
+                // URL path segments are percent-encoded, so we need to decode them
+                let decoded = percent_encoding::percent_decode_str(segment).decode_utf8_lossy();
+                if let Ok(okid) = parse_okid(&decoded) {
                     return Ok(okid);
                 }
             }
