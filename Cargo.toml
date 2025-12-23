@@ -42,6 +42,10 @@ iroh-base = {version="0.93.2", optional = true}
 worker = { version = "0.6.7", optional = true }
 hmac = "0.12.1"
 schemars = { version = "1.1.0", optional = true }
+percent-encoding = "2.3.2"
+js-sys = { version = "0.3.83", optional = true }
+web-sys = { version = "0.3.83", optional = true, features = ["Url"] }
+url = "2.5.7"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 jetstream_wireformat = {workspace = true}
@@ -53,7 +57,7 @@ jetstream_wireformat = { workspace = true, default-features = false, features = 
 getrandom = { version = "0.3.3", features = ["wasm_js"] }
 
 [features]
-default = ["sha2", "sha3", "blake3", "uuid", "ulid"]
+default = ["sha2", "sha3", "blake3", "uuid", "ulid", "wasm"]
 macro-diagnostics = []
 sha1 = ["dep:sha1"]
 sha2 = ["dep:sha2"]
@@ -68,6 +72,7 @@ pkarr = ["dep:pkarr"]
 iroh = ["dep:iroh", "dep:iroh-base"]
 worker = ["dep:worker"]
 jsonschema = ["dep:schemars"]
+wasm = ["dep:js-sys","dep:web-sys"]
 
 [dev-dependencies]
 insta = { version = "1.42.2", features = ["filters", "yaml"] }

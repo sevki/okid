@@ -1,6 +1,7 @@
 use jetstream_wireformat::JetStreamWireFormat;
 
 use okid::{const_parse_okid, OkId, SEPARATOR, SEPARATOR_BYTES, SEPARATOR_BYTES_LEN};
+use url::Url;
 
 #[cfg(feature = "sha1")]
 #[test]
@@ -487,4 +488,12 @@ fn test_schema_serialization_works() {
     settings.bind(|| {
         insta::assert_snapshot!(serde_json::to_string_pretty(&my_schema).unwrap());
     });
+}
+
+#[test]
+fn test_parse_okid_from_real_url() {
+    // Real URL path from: https://cf-loro.sevki.workers.dev/u%CB%904d3881627191c1d4236405ac98409b01
+    let url =
+        Url::parse("https://cf-loro.sevki.workers.dev/u%CB%904d3881627191c1d4236405ac98409b01")
+            .unwrap();
 }
